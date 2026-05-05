@@ -45,6 +45,7 @@
 
 - Week navigation latency reduced by client-side range cache + adjacent-range prefetch in `session-calendar`.
 - Cache must be invalidated on create/update; otherwise calendar can show stale data and make new booking appear missing.
+- To avoid dashboard route-switch reset, persist calendar `view/date` and cache in `sessionStorage` (`dashboard-calendar-state`, `dashboard-calendar-cache`).
 
 ## Phase 5 — VooV integration notes
 
@@ -67,3 +68,8 @@
 - Balance effect remains derived from `lib/balance.ts` policy:
   - `COMPLETED` and `NO_SHOW` consume hours
   - cancelled states do not consume
+
+## Phase 7 — dashboard aggregates
+
+- KPI/chart data is computed server-side from real rows (students, sessions, packages).
+- Student rail shows per-student computed remaining hours (`computeRemainingHours`) for quick balance scanning.

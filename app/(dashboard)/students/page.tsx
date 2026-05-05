@@ -16,7 +16,7 @@ export default async function StudentsPage() {
   const students = await db.student.findMany({
     where: { archivedAt: null },
     orderBy: { createdAt: "desc" },
-    include: { packages: true, sessions: true },
+    include: { packages: true, sessions: { where: { archivedAt: null } } },
   });
 
   return (

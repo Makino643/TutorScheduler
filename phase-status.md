@@ -11,7 +11,7 @@ Single place to scan **done vs not done** (mirrors checkboxes in [DESIGN.md](./D
 | **4** — Recurrence | yes | yes (see below) | 2026-05-05 |
 | **5** — VooV | yes | yes (see below) | 2026-05-05 |
 | **6** — Session lifecycle | yes | yes (see below) | 2026-05-05 |
-| **7** — Dashboard | no | no | — |
+| **7** — Dashboard | yes | yes (see below) | 2026-05-05 |
 | **8** — Reminders | no | no | — |
 | **9** — Working hours | no | no | — |
 | **10** — iCal + CSV | no | no | — |
@@ -247,3 +247,41 @@ npm run validate:phase6
 5. **Regression checks**
    - Drag/move/resize still works.
    - VooV meeting dialog still supports Join/Copy/override.
+
+### Phase 7 — automated gate
+
+```powershell
+npm run validate:phase7
+```
+
+### Phase 7 — detailed manual verification
+
+**Prep**
+- Ensure there are at least 2-3 students, with packages and sessions in mixed statuses.
+- Open `/dashboard`.
+
+1. **KPI strip sanity**
+   - Verify cards show non-zero values for:
+     - Active students
+     - Sessions in next 7d
+     - Remaining prepaid hours
+     - Consumed this month
+   - Cross-check one KPI with `npx prisma studio` (e.g., student count).
+
+2. **Status chart accuracy**
+   - Change one session status in dialog (e.g., SCHEDULED → COMPLETED).
+   - Refresh `/dashboard`.
+   - **Expect:** status bar chart reflects the change.
+
+3. **Next 7 days line chart**
+   - Create/move a session into one of next 7 days.
+   - **Expect:** corresponding day point increments after refresh.
+
+4. **Student rail + balance consistency**
+   - Open a student page and note remaining hours.
+   - Compare with student entry on dashboard rail.
+   - **Expect:** values match `computeRemainingHours` behavior.
+
+5. **Route-switch calendar persistence**
+   - Navigate `/dashboard` → `/students` (or `/settings`) → back to `/dashboard`.
+   - **Expect:** calendar keeps previous view/date (no reset to current week start).

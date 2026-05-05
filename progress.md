@@ -31,3 +31,6 @@ Format: `ISO date` — what changed — validation snippet.
 - **Phase 5 validation:** `npm run test`, `npm run lint`, `npm run typecheck`, `npm run build` (and `validate:phase5`) passed.
 - **Phase 6 implemented:** session lifecycle transitions in event dialog (`SCHEDULED`, `COMPLETED`, `CANCELLED_BY_TUTOR`, `CANCELLED_BY_STUDENT`, `NO_SHOW`) via `PATCH /api/sessions/:id` status updates; added lifecycle balance tests in `lib/session-lifecycle.test.ts`.
 - **Phase 6 validation:** `npm run test`, `npm run lint`, `npm run typecheck`, `npm run build` (and `validate:phase6`) passed.
+- **Dashboard reload UX fix:** calendar now persists view/date and event cache in `sessionStorage`, so switching between `/dashboard` and `/students`/`/settings` no longer resets week position or cold-loads immediately.
+- **Phase 7 implemented:** dashboard now includes KPI strip + Recharts status/load widgets + student rail (real DB aggregates) above calendar.
+- **Phase 7 validation:** `npm run validate:phase7` passed (test/lint/typecheck/build).

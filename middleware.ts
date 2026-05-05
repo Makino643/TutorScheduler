@@ -1,14 +1,21 @@
-import { auth } from "@/auth";
-import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import { NextResponse, type NextRequest } from "next/server";
 
-export default auth((req) => {
-  if (!req.auth) {
+export default async function middleware(req: NextRequest) {
+  const token = await getToken({
+    req,
+    secret:
+      process.env.AUTH_SECRET ??
+      "development-only-secret-do-not-use-in-production-32chars",
+  });
+
+  if (!token) {
     const login = new URL("/login", req.nextUrl.origin);
     login.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(login);
   }
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [

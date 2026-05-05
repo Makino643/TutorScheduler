@@ -17,6 +17,7 @@ async function hasOverlap(input: {
 }): Promise<boolean> {
   const conflict = await db.session.findFirst({
     where: {
+      archivedAt: null,
       id: input.exceptId ? { not: input.exceptId } : undefined,
       status: { notIn: ["CANCELLED_BY_STUDENT", "CANCELLED_BY_TUTOR"] },
       startsAt: { lt: input.endsAt },
@@ -45,6 +46,7 @@ export async function GET(req: Request) {
 
   const sessions = await db.session.findMany({
     where: {
+      archivedAt: null,
       ...(start && end
         ? {
             startsAt: { lt: end },

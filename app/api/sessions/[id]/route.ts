@@ -18,6 +18,7 @@ async function hasOverlap(input: {
 }): Promise<boolean> {
   const conflict = await db.session.findFirst({
     where: {
+      archivedAt: null,
       id: { notIn: input.exceptIds },
       status: { notIn: ["CANCELLED_BY_STUDENT", "CANCELLED_BY_TUTOR"] },
       startsAt: { lt: input.endsAt },
@@ -48,8 +49,8 @@ export async function PATCH(
     status?: SessionStatus;
   };
 
-  const existing = await db.session.findUnique({
-    where: { id },
+  const existing = await db.session.findFirst({
+    where: { id, archivedAt: null },
     include: { student: { select: { name: true, colorHex: true } } },
   });
   if (!existing) {
@@ -85,6 +86,7 @@ export async function PATCH(
   const targets = existing.recurrenceId && scope !== "this"
     ? await db.session.findMany({
         where: {
+          archivedAt: null,
           recurrenceId: existing.recurrenceId,
           ...(scope === "following" ? { startsAt: { gte: existing.startsAt } } : {}),
         },
@@ -156,4 +158,47 @@ export async function PATCH(
       blocksTime: true,
     },
   });
+}
+
+export async function DELETE(
+  req: Request,
+  ctx: { params: Promise<{ id: string }> },
+) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { id } = await ctx.params;
+  const existing = await db.session.findFirst({ where: { id, archivedAt: null } });
+  if (!existing) {
+    return NextResponse.json({ error: "Session not found." }, { status: 404 });
+  }
+  const body = (await req.json().catch(() => ({}))) as {
+    scope?: "this" | "following" | "all";
+  };
+  const scope = body.scope ?? "this";
+  const now = new Date();
+
+  if (!existing.recurrenceId || scope === "this") {
+    await db.session.update({
+      where: { id },
+      data: { archivedAt: now, status: "CANCELLED_BY_TUTOR" },
+    });
+    return NextResponse.json({ ok: true, count: 1 });
+  }
+
+  const where =
+    scope === "following"
+      ? {
+          recurrenceId: existing.recurrenceId,
+          archivedAt: null as null,
+          startsAt: { gte: existing.startsAt },
+        }
+      : { recurrenceId: existing.recurrenceId, archivedAt: null as null };
+
+  const result = await db.session.updateMany({
+    where,
+    data: { archivedAt: now, status: "CANCELLED_BY_TUTOR" },
+  });
+  return NextResponse.json({ ok: true, count: result.count });
 }

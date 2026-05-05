@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -45,6 +45,7 @@ type DraftBooking = {
 type SessionMeetingDraft = {
   id: string;
   title: string;
+  recurrenceId: string | null;
   joinUrl: string | null;
   meetingUrl: string;
   meetingCode: string;
@@ -89,6 +90,20 @@ async function throwIfNotOk(res: Response): Promise<void> {
   throw new Error(message);
 }
 
+function eventOverlapsRange(
+  event: { start?: unknown; end?: unknown },
+  rangeStartStr: string,
+  rangeEndStr: string,
+): boolean {
+  if (!event.start || !event.end) return false;
+  const eventStart = new Date(event.start as string | number | Date).getTime();
+  const eventEnd = new Date(event.end as string | number | Date).getTime();
+  const rangeStart = new Date(rangeStartStr).getTime();
+  const rangeEnd = new Date(rangeEndStr).getTime();
+  if (!Number.isFinite(eventStart) || !Number.isFinite(eventEnd)) return false;
+  return eventStart < rangeEnd && eventEnd > rangeStart;
+}
+
 export function SessionCalendar({ students }: Props) {
   const calendarRef = useRef<FullCalendar | null>(null);
   const eventsCacheRef = useRef<Map<string, EventInput[]>>(new Map());
@@ -107,7 +122,37 @@ export function SessionCalendar({ students }: Props) {
   );
   const [meetingOpen, setMeetingOpen] = useState(false);
 
-  const initialDate = useMemo(() => new Date(), []);
+  const [calendarReady, setCalendarReady] = useState(false);
+  const [persistedView, setPersistedView] = useState<string>("timeGridWeek");
+  const [persistedDate, setPersistedDate] = useState<Date>(new Date());
+  const initialDate = useMemo(() => persistedDate, [persistedDate]);
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem("dashboard-calendar-state");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { view?: string; date?: string };
+        if (parsed.view) setPersistedView(parsed.view);
+        if (parsed.date) {
+          const d = new Date(parsed.date);
+          if (Number.isFinite(d.getTime())) setPersistedDate(d);
+        }
+      }
+      const rawCache = window.sessionStorage.getItem("dashboard-calendar-cache");
+      if (rawCache) {
+        const parsed = JSON.parse(rawCache) as Array<[string, EventInput[]]>;
+        eventsCacheRef.current = new Map(parsed);
+      }
+    } finally {
+      setCalendarReady(true);
+    }
+    return () => {
+      window.sessionStorage.setItem(
+        "dashboard-calendar-cache",
+        JSON.stringify(Array.from(eventsCacheRef.current.entries())),
+      );
+    };
+  }, []);
 
   const handleSelect = (arg: DateSelectArg) => {
     setError(null);
@@ -145,9 +190,47 @@ export function SessionCalendar({ students }: Props) {
         body: JSON.stringify(payload),
       });
       await throwIfNotOk(res);
+      const createdEvent = (await res.json()) as EventInput;
       setOpen(false);
-      invalidateEventsCache();
-      refetchEvents();
+      const api = calendarRef.current?.getApi();
+      if (api) {
+        const visibleStart = api.view.activeStart.toISOString();
+        const visibleEnd = api.view.activeEnd.toISOString();
+        let inserted = false;
+        for (const [key, events] of eventsCacheRef.current.entries()) {
+          const [rangeStart, rangeEnd] = key.split("|");
+          if (!rangeStart || !rangeEnd) continue;
+          if (!eventOverlapsRange(createdEvent, rangeStart, rangeEnd)) continue;
+          const next = [...events];
+          const exists = next.some((e) => e.id === createdEvent.id);
+          if (!exists) {
+            next.push(createdEvent);
+            eventsCacheRef.current.set(key, next);
+            inserted = true;
+          }
+        }
+        // Ensure active range has the new event cached before refetch.
+        const activeKey = `${visibleStart}|${visibleEnd}`;
+        if (eventOverlapsRange(createdEvent, visibleStart, visibleEnd)) {
+          const activeEvents = eventsCacheRef.current.get(activeKey) ?? [];
+          if (!activeEvents.some((e) => e.id === createdEvent.id)) {
+            eventsCacheRef.current.set(activeKey, [...activeEvents, createdEvent]);
+            inserted = true;
+          }
+        }
+        // Keep nearby ranges warm without forcing a full blank/refetch cycle.
+        void prefetchAdjacentRanges(visibleStart, visibleEnd);
+        // Refetch from source (which now returns cached data instantly).
+        if (inserted) {
+          api.refetchEvents();
+        } else {
+          invalidateEventsCache();
+          refetchEvents();
+        }
+      } else {
+        invalidateEventsCache();
+        refetchEvents();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to create session.");
     } finally {
@@ -270,6 +353,41 @@ export function SessionCalendar({ students }: Props) {
       setError(
         e instanceof Error ? e.message : "Unable to update session status.",
       );
+    } finally {
+      setSavingMeeting(false);
+    }
+  };
+  const archiveSession = async (scope: "this" | "following" | "all") => {
+    if (!selectedSession) return;
+    if (
+      scope === "all" &&
+      !window.confirm(
+        "Archive all sessions in this series? This keeps data in the database but hides them from calendar and balance.",
+      )
+    ) {
+      return;
+    }
+    setSavingMeeting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/sessions/${selectedSession.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scope }),
+      });
+      await throwIfNotOk(res);
+      setMeetingOpen(false);
+      invalidateEventsCache();
+      refetchEvents();
+      setError(
+        scope === "this"
+          ? "Session archived."
+          : scope === "following"
+            ? "Following sessions archived."
+            : "Series archived.",
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to archive session.");
     } finally {
       setSavingMeeting(false);
     }
@@ -487,6 +605,36 @@ export function SessionCalendar({ students }: Props) {
                         No-show
                       </Button>
                     </div>
+                    <div className="pt-2">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => archiveSession("this")}
+                        disabled={savingMeeting}
+                      >
+                        Archive this session
+                      </Button>
+                      {selectedSession.recurrenceId ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => archiveSession("following")}
+                            disabled={savingMeeting}
+                          >
+                            Archive following
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => archiveSession("all")}
+                            disabled={savingMeeting}
+                          >
+                            Archive all in series
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               ) : null}
@@ -661,6 +809,7 @@ export function SessionCalendar({ students }: Props) {
       ) : null}
 
       <div className="rounded-[var(--radius)] border border-border bg-card p-3">
+        {calendarReady ? (
         <FullCalendar
           ref={calendarRef}
           plugins={[
@@ -669,7 +818,7 @@ export function SessionCalendar({ students }: Props) {
             dayGridPlugin,
             multiMonthPlugin,
           ]}
-          initialView="timeGridWeek"
+          initialView={persistedView}
           initialDate={initialDate}
           selectable
           editable
@@ -698,6 +847,8 @@ export function SessionCalendar({ students }: Props) {
             setSelectedSession({
               id: arg.event.id,
               title: arg.event.title,
+              recurrenceId:
+                (ext.recurrenceId as string | null | undefined) ?? null,
               joinUrl: (ext.joinUrl as string | null | undefined) ?? null,
               meetingUrl: (ext.meetingUrl as string | null | undefined) ?? "",
               meetingCode: (ext.meetingCode as string | null | undefined) ?? "",
@@ -711,9 +862,17 @@ export function SessionCalendar({ students }: Props) {
           }}
           eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
           datesSet={(arg) => {
+            window.sessionStorage.setItem(
+              "dashboard-calendar-state",
+              JSON.stringify({
+                view: arg.view.type,
+                date: arg.start.toISOString(),
+              }),
+            );
             void prefetchAtStartup(arg.startStr, arg.endStr);
           }}
         />
+        ) : null}
       </div>
     </div>
   );

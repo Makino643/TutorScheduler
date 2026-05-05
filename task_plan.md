@@ -14,7 +14,8 @@
 | 4     | Recurrence        | **complete** | Weekly recurrence creation, scope edit (`this/following/all`), exception via detaching occurrence from series                         |
 | 5     | VooV integration  | **complete** | PMR settings page, MeetingProvider + tests, Join/Copy on session, meeting override fields                                             |
 | 6     | Session lifecycle | **complete** | Status transitions in session dialog (scheduled/completed/cancel/no-show) + lifecycle balance tests                                   |
-| 7+    | …                 | pending      | See DESIGN.md                                                                                                                         |
+| 7     | Dashboard         | **complete** | KPI strip, Recharts widgets, student rail with real aggregate data                                                                    |
+| 8+    | …                 | pending      | See DESIGN.md                                                                                                                         |
 
 
 ## Decisions
@@ -38,7 +39,7 @@
 
 ## Next actions
 
-1. Phase 7: Dashboard widgets and KPI views.
+1. Phase 8: Reminders (T-24h/T-1h pipeline).
 2. Theme switching epic: original + dark theme (foundation → toggle → QA).
 3. EN/ZH localization epic: i18n foundation → switcher → rollout/QA.
 

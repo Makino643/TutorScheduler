@@ -30,7 +30,7 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
     where: { id },
     include: {
       packages: { orderBy: { purchasedAt: "desc" } },
-      sessions: true,
+      sessions: { where: { archivedAt: null } },
     },
   });
 
