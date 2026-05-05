@@ -1,0 +1,21 @@
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
+
+import { LoginForm } from "./login-form";
+
+export default async function LoginPage() {
+  const session = await auth();
+  if (session?.user) {
+    redirect("/dashboard");
+  }
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background p-8">
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+        <LoginForm />
+      </Suspense>
+    </main>
+  );
+}

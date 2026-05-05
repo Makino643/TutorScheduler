@@ -1,0 +1,11 @@
+{
+  "fallbackRadius": 3,
+  "normalize": [
+    { "prefix": "/students/", "to": "/students" }
+  ],
+  "neighbors": {
+    "/dashboard": ["/students", "/students/new"],
+    "/students": ["/dashboard", "/students/new"],
+    "/students/new": ["/students", "/dashboard"]
+  }
+}

@@ -1,0 +1,74 @@
+// TutorFlow — DESIGN.md §4
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tutor {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  displayName      String
+  voovPmrId        String?
+  voovPmrPassword  String?
+  workingHours     Json
+  timezone         String   @default("Asia/Shanghai")
+  createdAt        DateTime @default(now())
+}
+
+model Student {
+  id            String     @id @default(cuid())
+  name          String
+  gradeLevel    String?
+  subjects      Json
+  parentContact String?
+  notes         String?
+  colorHex      String
+  archivedAt    DateTime?
+  packages      Package[]
+  sessions      Session[]
+  createdAt     DateTime   @default(now())
+}
+
+model Package {
+  id              String    @id @default(cuid())
+  studentId       String
+  hoursPurchased  Float
+  pricePerSession Decimal?
+  purchasedAt     DateTime  @default(now())
+  note            String?
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id            String        @id @default(cuid())
+  studentId     String
+  subject       String
+  startsAt      DateTime
+  endsAt        DateTime
+  status        SessionStatus @default(SCHEDULED)
+  recurrenceId  String?
+  rrule         String?
+  meetingUrl    String?
+  meetingCode   String?
+  notes         String?
+  homeworkUrl   String?
+  feedback      Json?
+  createdAt     DateTime      @default(now())
+  student       Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([startsAt, endsAt])
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED_BY_TUTOR
+  CANCELLED_BY_STUDENT
+  NO_SHOW
+}
