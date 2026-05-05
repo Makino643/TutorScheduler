@@ -27,3 +27,7 @@ Format: `ISO date` — what changed — validation snippet.
   - Improved calendar responsiveness with event-range cache + adjacent prefetch.
   - Fixed stale-cache issue where newly booked/updated sessions could appear missing by clearing cache on create/update before refetch.
 - **Validation:** `npm run test`, `npm run lint`, `npm run typecheck` all pass after follow-up changes.
+- **Phase 5 implemented:** `lib/meeting-provider.ts` + `meeting-provider.test.ts`, PMR settings page (`/settings`) with server action update, session API now resolves Join URL from override/PMR, calendar event-click dialog now supports **Join VooV**, **Copy link**, and per-session meeting override save.
+- **Phase 5 validation:** `npm run test`, `npm run lint`, `npm run typecheck`, `npm run build` (and `validate:phase5`) passed.
+- **Phase 6 implemented:** session lifecycle transitions in event dialog (`SCHEDULED`, `COMPLETED`, `CANCELLED_BY_TUTOR`, `CANCELLED_BY_STUDENT`, `NO_SHOW`) via `PATCH /api/sessions/:id` status updates; added lifecycle balance tests in `lib/session-lifecycle.test.ts`.
+- **Phase 6 validation:** `npm run test`, `npm run lint`, `npm run typecheck`, `npm run build` (and `validate:phase6`) passed.

@@ -14,7 +14,9 @@
     "test": "vitest run",
     "validate:phase2": "npm run test && npm run validate:phase1",
     "validate:phase3": "npm run validate:phase2",
-    "validate:phase4": "npm run test && npm run lint && npm run typecheck && npm run build"
+    "validate:phase4": "npm run test && npm run lint && npm run typecheck && npm run build",
+    "validate:phase5": "npm run test && npm run lint && npm run typecheck && npm run build",
+    "validate:phase6": "npm run test && npm run lint && npm run typecheck && npm run build"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"

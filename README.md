@@ -40,6 +40,8 @@ Auth.js: `/api/auth/*` (JWT credentials against `Tutor` table).
 | `npm run validate:phase2` | `npm run test` then `validate:phase1` (Phase 2 gate) |
 | `npm run validate:phase3` | Alias of `validate:phase2` (Phase 3 gate) |
 | `npm run validate:phase4` | Test + lint + typecheck + build (Phase 4 gate) |
+| `npm run validate:phase5` | Test + lint + typecheck + build (Phase 5 gate) |
+| `npm run validate:phase6` | Test + lint + typecheck + build (Phase 6 gate) |
 
 ## Troubleshooting
 
@@ -47,11 +49,11 @@ Auth.js: `/api/auth/*` (JWT credentials against `Tutor` table).
 - **500 / broken UI after switching tools:** delete `node_modules` and `.next`, then run **`npm install`** again (use only npm in this repo).
 - **Database / env:** ensure `.env` exists and run `npx prisma migrate dev` once.
 
-## Validation (Phases 0–4)
+## Validation (Phases 0–6)
 
-See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) (including **Phase 2 + 3 + 4 manual steps**).
+See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) (including **Phase 2 + 3 + 4 + 5 + 6 manual steps**).
 
-**Automated:** `npm run validate:phase1` (Phases 0–1); `npm run validate:phase2` adds balance tests; `npm run validate:phase3` covers calendar MVP; `npm run validate:phase4` adds recurrence validation.
+**Automated:** `npm run validate:phase1` (Phases 0–1); `npm run validate:phase2` adds balance tests; `npm run validate:phase3` covers calendar MVP; `npm run validate:phase4` adds recurrence validation; `npm run validate:phase5` covers VooV integration; `npm run validate:phase6` covers lifecycle transitions.
 
 **Manual (auth):** `npm run dev` → `/` redirects to `/login` → sign in with seed credentials → `/dashboard` loads → **Sign out** returns to `/login`.
 
@@ -60,6 +62,10 @@ See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) 
 **Manual (calendar):** `/dashboard` supports Day/Week/Month/Year views, drag-create, drag-move/resize, and overlap blocking — step-by-step checks in [phase-status.md](./phase-status.md).
 
 **Manual (recurrence):** weekly series and `this/following/all` scope edits are documented in [phase-status.md](./phase-status.md).
+
+**Manual (VooV):** PMR settings, Join/Copy actions, and per-session override behavior are documented in [phase-status.md](./phase-status.md).
+
+**Manual (lifecycle):** status transitions (completed/cancel/no-show) and balance effects are documented in [phase-status.md](./phase-status.md).
 
 **Database:** `npx prisma migrate dev` applies migrations to `prisma/dev.db`; `npm run db:seed` upserts the demo tutor.
 

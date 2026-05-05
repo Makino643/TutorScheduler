@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { resolveMeetingForSession } from "@/lib/meeting-provider";
 import { expandWeeklyStarts, expandWeeklyStartsUntil } from "@/lib/recurrence";
 
 function isCancelled(status: SessionStatus): boolean {
@@ -54,23 +55,39 @@ export async function GET(req: Request) {
     include: { student: { select: { name: true, colorHex: true } } },
     orderBy: { startsAt: "asc" },
   });
+  const tutor = await db.tutor.findFirst({
+    where: { id: session.user.id },
+    select: { voovPmrId: true, voovPmrPassword: true },
+  });
 
   return NextResponse.json(
-    sessions.map((s) => ({
-      id: s.id,
-      title: `${s.student.name} · ${s.subject}`,
-      start: s.startsAt.toISOString(),
-      end: s.endsAt.toISOString(),
-      backgroundColor: s.student.colorHex,
-      borderColor: s.student.colorHex,
-      extendedProps: {
-        studentId: s.studentId,
-        subject: s.subject,
-        status: s.status,
-        recurrenceId: s.recurrenceId,
-        blocksTime: !isCancelled(s.status),
-      },
-    })),
+    sessions.map((s) => {
+      const meeting = resolveMeetingForSession({
+        tutor: {
+          voovPmrId: tutor?.voovPmrId ?? null,
+          voovPmrPassword: tutor?.voovPmrPassword ?? null,
+        },
+        session: { meetingUrl: s.meetingUrl, meetingCode: s.meetingCode },
+      });
+      return {
+        id: s.id,
+        title: `${s.student.name} · ${s.subject}`,
+        start: s.startsAt.toISOString(),
+        end: s.endsAt.toISOString(),
+        backgroundColor: s.student.colorHex,
+        borderColor: s.student.colorHex,
+        extendedProps: {
+          studentId: s.studentId,
+          subject: s.subject,
+          status: s.status,
+          recurrenceId: s.recurrenceId,
+          blocksTime: !isCancelled(s.status),
+          meetingUrl: s.meetingUrl,
+          meetingCode: s.meetingCode,
+          joinUrl: meeting?.joinUrl ?? null,
+        },
+      };
+    }),
   );
 }
 

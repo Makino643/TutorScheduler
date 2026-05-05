@@ -12,7 +12,9 @@
 | 2     | Students CRUD     | **complete** | List `/students`, new + detail, top-up dialog → `Package`, `lib/balance.ts` + Vitest, auto `colorHex`, middleware `/students`         |
 | 3     | Calendar MVP      | **complete** | FullCalendar Day/Week/Month/Year, drag-create BookSessionDialog, drag move/resize persistence, server overlap 409 via `/api/sessions` |
 | 4     | Recurrence        | **complete** | Weekly recurrence creation, scope edit (`this/following/all`), exception via detaching occurrence from series                         |
-| 5+    | …                 | pending      | See DESIGN.md                                                                                                                         |
+| 5     | VooV integration  | **complete** | PMR settings page, MeetingProvider + tests, Join/Copy on session, meeting override fields                                             |
+| 6     | Session lifecycle | **complete** | Status transitions in session dialog (scheduled/completed/cancel/no-show) + lifecycle balance tests                                   |
+| 7+    | …                 | pending      | See DESIGN.md                                                                                                                         |
 
 
 ## Decisions
@@ -31,11 +33,12 @@
 | FullCalendar CSS import path (`@fullcalendar/*/index.css`) failed build          | 1       | Removed CSS imports from `globals.css`; package version works without external CSS files        |
 | Windows EPERM when `prisma generate` rewrites engine DLL                         | 1       | `build` script changed to `next build`; Prisma client still generated on `postinstall`          |
 | `session-catchup.py` path missing under `$env:USERPROFILE\\.claude\\skills\\...` | 1       | Script not found; synced planning files manually from current repo state                        |
+| `session-catchup.py` file missing in current host layout                         | 1       | Manually synced planning files (`task_plan/progress/findings`)                                  |
 
 
 ## Next actions
 
-1. Phase 5: VooV integration (`MeetingProvider` + PMR adapter).
+1. Phase 7: Dashboard widgets and KPI views.
 2. Theme switching epic: original + dark theme (foundation → toggle → QA).
 3. EN/ZH localization epic: i18n foundation → switcher → rollout/QA.
 

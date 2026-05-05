@@ -1,3 +1,4 @@
+import { SessionStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
@@ -42,17 +43,10 @@ export async function PATCH(
     endsAt?: string;
     scope?: "this" | "following" | "all";
     anchorStart?: string;
+    meetingUrl?: string | null;
+    meetingCode?: string | null;
+    status?: SessionStatus;
   };
-
-  const startsAt = parseDate(body.startsAt);
-  const endsAt = parseDate(body.endsAt);
-
-  if (!startsAt || !endsAt || startsAt >= endsAt) {
-    return NextResponse.json(
-      { error: "Invalid payload for reschedule." },
-      { status: 400 },
-    );
-  }
 
   const existing = await db.session.findUnique({
     where: { id },
@@ -61,6 +55,24 @@ export async function PATCH(
   if (!existing) {
     return NextResponse.json({ error: "Session not found." }, { status: 404 });
   }
+  const startsAt = parseDate(body.startsAt) ?? existing.startsAt;
+  const endsAt = parseDate(body.endsAt) ?? existing.endsAt;
+  if (startsAt >= endsAt) {
+    return NextResponse.json(
+      { error: "Invalid payload for reschedule." },
+      { status: 400 },
+    );
+  }
+  const hasMeetingUrl = Object.prototype.hasOwnProperty.call(body, "meetingUrl");
+  const hasMeetingCode = Object.prototype.hasOwnProperty.call(body, "meetingCode");
+  const hasStatus = Object.prototype.hasOwnProperty.call(body, "status");
+  const meetingUrl = hasMeetingUrl
+    ? (body.meetingUrl ?? "").trim() || null
+    : undefined;
+  const meetingCode = hasMeetingCode
+    ? (body.meetingCode ?? "").trim() || null
+    : undefined;
+  const status = hasStatus ? body.status : undefined;
 
   const scope = body.scope ?? "this";
   const anchorStart = parseDate(body.anchorStart) ?? existing.startsAt;
@@ -114,6 +126,9 @@ export async function PATCH(
         data: {
           startsAt: u.startsAt,
           endsAt: u.endsAt,
+          meetingUrl,
+          meetingCode,
+          status,
           recurrenceId:
             scope === "this" && existing.recurrenceId ? null : undefined,
           rrule: scope === "this" ? null : undefined,

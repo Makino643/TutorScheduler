@@ -42,6 +42,21 @@ type DraftBooking = {
   recurrenceCount: string;
   recurrenceUntil: string;
 };
+type SessionMeetingDraft = {
+  id: string;
+  title: string;
+  joinUrl: string | null;
+  meetingUrl: string;
+  meetingCode: string;
+  startsAt: string;
+  endsAt: string;
+  status:
+    | "SCHEDULED"
+    | "COMPLETED"
+    | "CANCELLED_BY_TUTOR"
+    | "CANCELLED_BY_STUDENT"
+    | "NO_SHOW";
+};
 
 function toLocalInputValue(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -80,12 +95,17 @@ export function SessionCalendar({ students }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingMeeting, setSavingMeeting] = useState(false);
   const [draft, setDraft] = useState<DraftBooking>(() => {
     const start = new Date();
     start.setMinutes(0, 0, 0);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
     return fromRange(start, end, students[0]?.id ?? "");
   });
+  const [selectedSession, setSelectedSession] = useState<SessionMeetingDraft | null>(
+    null,
+  );
+  const [meetingOpen, setMeetingOpen] = useState(false);
 
   const initialDate = useMemo(() => new Date(), []);
 
@@ -191,6 +211,69 @@ export function SessionCalendar({ students }: Props) {
     setDraft(fromRange(start, end, students[0]?.id ?? ""));
     setOpen(true);
   };
+  const copyJoinLink = async () => {
+    if (!selectedSession?.joinUrl) return;
+    await navigator.clipboard.writeText(selectedSession.joinUrl);
+    setError("Join link copied to clipboard.");
+  };
+
+  const saveMeetingOverride = async (formData: FormData) => {
+    if (!selectedSession) return;
+    setSavingMeeting(true);
+    setError(null);
+    try {
+      const payload = {
+        startsAt: selectedSession.startsAt,
+        endsAt: selectedSession.endsAt,
+        scope: "this" as const,
+        meetingUrl: String(formData.get("meetingUrl") ?? "").trim(),
+        meetingCode: String(formData.get("meetingCode") ?? "").trim(),
+      };
+      const res = await fetch(`/api/sessions/${selectedSession.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      await throwIfNotOk(res);
+      setMeetingOpen(false);
+      invalidateEventsCache();
+      refetchEvents();
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Unable to update meeting override.",
+      );
+    } finally {
+      setSavingMeeting(false);
+    }
+  };
+  const updateSessionStatus = async (nextStatus: SessionMeetingDraft["status"]) => {
+    if (!selectedSession) return;
+    setSavingMeeting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/sessions/${selectedSession.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startsAt: selectedSession.startsAt,
+          endsAt: selectedSession.endsAt,
+          scope: "this",
+          status: nextStatus,
+        }),
+      });
+      await throwIfNotOk(res);
+      setSelectedSession((prev) => (prev ? { ...prev, status: nextStatus } : prev));
+      setError(`Session marked ${nextStatus}.`);
+      invalidateEventsCache();
+      refetchEvents();
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Unable to update session status.",
+      );
+    } finally {
+      setSavingMeeting(false);
+    }
+  };
 
   const fetchEventsRange = async (
     startStr: string,
@@ -278,7 +361,138 @@ export function SessionCalendar({ students }: Props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-card-foreground">Calendar</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2">
+          <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Session meeting</DialogTitle>
+              </DialogHeader>
+              {selectedSession ? (
+                <div className="space-y-4 pt-2">
+                  <p className="text-sm text-muted-foreground">
+                    {selectedSession.title}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSession.joinUrl ? (
+                      <Button asChild>
+                        <a
+                          href={selectedSession.joinUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Join VooV
+                        </a>
+                      </Button>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No join link yet. Configure PMR in Settings or add override
+                        below.
+                      </p>
+                    )}
+                    {selectedSession.joinUrl ? (
+                      <Button type="button" variant="outline" onClick={copyJoinLink}>
+                        Copy link
+                      </Button>
+                    ) : null}
+                  </div>
+                  <form action={saveMeetingOverride} className="grid gap-3">
+                    <div className="grid gap-2">
+                      <Label htmlFor="meetingUrl">Meeting URL override</Label>
+                      <Input
+                        id="meetingUrl"
+                        name="meetingUrl"
+                        defaultValue={selectedSession.meetingUrl}
+                        placeholder="Leave empty to use PMR"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="meetingCode">Meeting code override</Label>
+                      <Input
+                        id="meetingCode"
+                        name="meetingCode"
+                        defaultValue={selectedSession.meetingCode}
+                        placeholder="Optional"
+                      />
+                    </div>
+                    <Button type="submit" disabled={savingMeeting}>
+                      {savingMeeting ? "Saving..." : "Save override"}
+                    </Button>
+                  </form>
+                  <div className="grid gap-2 rounded-md border border-border p-3">
+                    <p className="text-sm font-medium text-card-foreground">
+                      Session lifecycle
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Current status: {selectedSession.status}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant={
+                          selectedSession.status === "SCHEDULED"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => updateSessionStatus("SCHEDULED")}
+                        disabled={savingMeeting}
+                      >
+                        Scheduled
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          selectedSession.status === "COMPLETED"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => updateSessionStatus("COMPLETED")}
+                        disabled={savingMeeting}
+                      >
+                        Completed
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          selectedSession.status === "CANCELLED_BY_TUTOR"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => updateSessionStatus("CANCELLED_BY_TUTOR")}
+                        disabled={savingMeeting}
+                      >
+                        Cancelled by tutor
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          selectedSession.status === "CANCELLED_BY_STUDENT"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => updateSessionStatus("CANCELLED_BY_STUDENT")}
+                        disabled={savingMeeting}
+                      >
+                        Cancelled by student
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          selectedSession.status === "NO_SHOW"
+                            ? "default"
+                            : "outline"
+                        }
+                        onClick={() => updateSessionStatus("NO_SHOW")}
+                        disabled={savingMeeting}
+                      >
+                        No-show
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </DialogContent>
+          </Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button type="button" onClick={openBlankDialog}>
               Book session
@@ -434,6 +648,7 @@ export function SessionCalendar({ students }: Props) {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {error ? (
@@ -478,6 +693,22 @@ export function SessionCalendar({ students }: Props) {
           events={apiProvider}
           eventDrop={handleEventChange}
           eventResize={handleEventChange}
+          eventClick={(arg) => {
+            const ext = arg.event.extendedProps as Record<string, unknown>;
+            setSelectedSession({
+              id: arg.event.id,
+              title: arg.event.title,
+              joinUrl: (ext.joinUrl as string | null | undefined) ?? null,
+              meetingUrl: (ext.meetingUrl as string | null | undefined) ?? "",
+              meetingCode: (ext.meetingCode as string | null | undefined) ?? "",
+              startsAt: arg.event.start?.toISOString() ?? "",
+              endsAt: arg.event.end?.toISOString() ?? "",
+              status:
+                (ext.status as SessionMeetingDraft["status"] | undefined) ??
+                "SCHEDULED",
+            });
+            setMeetingOpen(true);
+          }}
           eventTimeFormat={{ hour: "2-digit", minute: "2-digit", hour12: false }}
           datesSet={(arg) => {
             void prefetchAtStartup(arg.startStr, arg.endStr);

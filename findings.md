@@ -45,3 +45,25 @@
 
 - Week navigation latency reduced by client-side range cache + adjacent-range prefetch in `session-calendar`.
 - Cache must be invalidated on create/update; otherwise calendar can show stale data and make new booking appear missing.
+
+## Phase 5 — VooV integration notes
+
+- `MeetingProvider` resolution order:
+  1) session override `meetingUrl` / `meetingCode`
+  2) tutor PMR settings (`voovPmrId`, `voovPmrPassword`)
+  3) null (no meeting available)
+- PMR ID accepts either raw ID (converted to `https://meeting.tencent.com/dm/<id>`) or full URL.
+- Session override is saved through `PATCH /api/sessions/:id` with `scope: "this"` in the UI.
+
+## Phase 6 — session lifecycle notes
+
+- Lifecycle status is updated via `PATCH /api/sessions/:id` with `status`.
+- UI exposes lifecycle actions on event click dialog:
+  - `SCHEDULED`
+  - `COMPLETED`
+  - `CANCELLED_BY_TUTOR`
+  - `CANCELLED_BY_STUDENT`
+  - `NO_SHOW`
+- Balance effect remains derived from `lib/balance.ts` policy:
+  - `COMPLETED` and `NO_SHOW` consume hours
+  - cancelled states do not consume

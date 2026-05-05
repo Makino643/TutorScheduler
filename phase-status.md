@@ -9,8 +9,8 @@ Single place to scan **done vs not done** (mirrors checkboxes in [DESIGN.md](./D
 | **2** — Students CRUD | yes | yes (see below) | 2026-05-04 |
 | **3** — Calendar MVP | yes | yes (see below) | 2026-05-05 |
 | **4** — Recurrence | yes | yes (see below) | 2026-05-05 |
-| **5** — VooV | no | no | — |
-| **6** — Session lifecycle | no | no | — |
+| **5** — VooV | yes | yes (see below) | 2026-05-05 |
+| **6** — Session lifecycle | yes | yes (see below) | 2026-05-05 |
 | **7** — Dashboard | no | no | — |
 | **8** — Reminders | no | no | — |
 | **9** — Working hours | no | no | — |
@@ -39,7 +39,7 @@ npm run validate:phase2
 
 ### Phase 2 — detailed manual verification
 
-**Prep:** `npm run dev`, sign in as the seed tutor (`admin@tutorflow.local` / `TutorFlow!Demo1` unless overridden in `.env`).
+**Prep:** `npm run dev`, sign in as the seed tutor (`shixian.liu643@outlook.com` / `Miqishmily5` unless overridden in `.env`).
 
 1. **Auth on student routes**
    - Sign out (or use a private window while logged out).
@@ -171,3 +171,79 @@ npm run validate:phase4
 6. **Regression**
    - Create one-off session with recurrence = none.
    - **Expect:** behavior matches Phase 3 (single event only, normal drag/resize).
+
+### Phase 5 — automated gate
+
+```powershell
+npm run validate:phase5
+```
+
+### Phase 5 — detailed manual verification
+
+**Prep**
+- Ensure at least one active student exists.
+- Open `/settings` and `/dashboard`.
+
+1. **Save PMR settings**
+   - Open `/settings`.
+   - Enter PMR ID (or URL) and optional PMR password, then save.
+   - **Expect:** success notice appears; values persist after refresh.
+
+2. **Join + copy from PMR**
+   - Open `/dashboard`.
+   - Click an existing session event.
+   - **Expect:** Session meeting dialog opens with **Join VooV** and **Copy link**.
+   - Click **Join VooV**.
+   - **Expect:** browser opens VooV URL in a new tab.
+   - Click **Copy link** and paste somewhere.
+   - **Expect:** copied link matches PMR-derived URL.
+
+3. **Override meeting on one session**
+   - In Session meeting dialog, set a custom meeting URL/code and save.
+   - **Expect:** dialog closes; on reopening same session, Join/Copy use override link/code.
+   - Open another session in same series.
+   - **Expect:** it still uses PMR defaults (override affects this session only).
+
+4. **Fallback behavior**
+   - Clear override fields on a session and save.
+   - **Expect:** it falls back to PMR link again.
+   - Clear PMR in `/settings`, refresh dashboard, open a session without override.
+   - **Expect:** no Join button until PMR or override exists.
+
+### Phase 6 — automated gate
+
+```powershell
+npm run validate:phase6
+```
+
+### Phase 6 — detailed manual verification
+
+**Prep**
+- Ensure one student has package hours (e.g. 5 hours) from `/students/{id}`.
+- Ensure at least one session exists on `/dashboard`.
+
+1. **Mark completed decreases balance**
+   - Open session event dialog.
+   - Click **Completed**.
+   - Refresh `/students/{id}` for that student.
+   - **Expect:** balance decreases by session duration.
+
+2. **Tutor-cancel refunds (no consume)**
+   - Open another session for same student.
+   - Click **Cancelled by tutor**.
+   - Refresh `/students/{id}`.
+   - **Expect:** balance unchanged.
+
+3. **No-show consumes**
+   - Open another session and click **No-show**.
+   - Refresh `/students/{id}`.
+   - **Expect:** balance decreases by session duration.
+
+4. **Switch back to scheduled**
+   - Set same session status to **Scheduled**.
+   - Refresh student page.
+   - **Expect:** consumed hours for that session are removed from computed balance.
+
+5. **Regression checks**
+   - Drag/move/resize still works.
+   - VooV meeting dialog still supports Join/Copy/override.
