@@ -126,13 +126,25 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-[2200px] space-y-4">
-      <div>
-        <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
-          Welcome back
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Here&apos;s a snapshot of your scheduling and student balances.
-        </p>
+      <div className="rounded-2xl border border-border bg-card px-4 py-3 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <div className="flex flex-wrap items-start gap-8">
+          <div>
+          <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
+            Welcome back
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Here&apos;s a snapshot of your scheduling and student balances.
+          </p>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-card-foreground">
+              Weekly schedule
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Drag to reschedule. Click a session to manage status and meeting links.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_26rem]">

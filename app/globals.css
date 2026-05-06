@@ -169,6 +169,19 @@
   border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
 }
 
+.fc .fc-bookSession-button {
+  margin-right: 0.35rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: color-mix(in oklab, var(--primary) 65%, var(--border));
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.06);
+}
+
+.fc .fc-bookSession-button:hover {
+  background: color-mix(in oklab, var(--primary) 90%, black);
+  color: var(--primary-foreground);
+}
+
 .fc .fc-col-header-cell {
   background: color-mix(in oklab, var(--muted) 60%, transparent);
 }
@@ -237,5 +250,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .fc .fc-bookSession-button {
+    display: none;
   }
 }

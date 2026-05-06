@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -486,17 +485,7 @@ export function SessionCalendar({ students }: Props) {
 
   return (
     <section className="space-y-3" aria-label="Session calendar">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold tracking-tight text-card-foreground">
-            Weekly schedule
-          </h2>
-          <p className="text-[11px] text-muted-foreground">
-            Drag to reschedule. Click a session to manage status and meeting links.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
+      <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Session meeting</DialogTitle>
@@ -657,11 +646,6 @@ export function SessionCalendar({ students }: Props) {
             </DialogContent>
           </Dialog>
           <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button type="button" onClick={openBlankDialog} disabled={isMobile}>
-              Book session
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Book Session</DialogTitle>
@@ -812,8 +796,6 @@ export function SessionCalendar({ students }: Props) {
             </form>
           </DialogContent>
         </Dialog>
-        </div>
-      </div>
 
       {error ? (
         <p
@@ -845,7 +827,19 @@ export function SessionCalendar({ students }: Props) {
             left: "prev,next today",
             center: "title",
             right:
-              "timeGridDay,timeGridWeek,dayGridMonth,multiMonthYear",
+              "bookSession timeGridDay,timeGridWeek,dayGridMonth,multiMonthYear",
+          }}
+          customButtons={{
+            bookSession: {
+              text: "Book session",
+              click: () => {
+                if (isMobile) {
+                  setError("Booking is disabled on mobile view.");
+                  return;
+                }
+                openBlankDialog();
+              },
+            },
           }}
           buttonText={{
             timeGridDay: "Day",
