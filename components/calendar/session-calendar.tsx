@@ -121,6 +121,7 @@ export function SessionCalendar({ students }: Props) {
     null,
   );
   const [meetingOpen, setMeetingOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [calendarReady, setCalendarReady] = useState(false);
   const [persistedView, setPersistedView] = useState<string>("timeGridWeek");
@@ -152,6 +153,14 @@ export function SessionCalendar({ students }: Props) {
         JSON.stringify(Array.from(eventsCacheRef.current.entries())),
       );
     };
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
 
   const handleSelect = (arg: DateSelectArg) => {
@@ -476,9 +485,16 @@ export function SessionCalendar({ students }: Props) {
   };
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-3" aria-label="Session calendar">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-card-foreground">Calendar</h1>
+        <div>
+          <h2 className="text-base font-semibold tracking-tight text-card-foreground">
+            Weekly schedule
+          </h2>
+          <p className="text-[11px] text-muted-foreground">
+            Drag to reschedule. Click a session to manage status and meeting links.
+          </p>
+        </div>
         <div className="flex gap-2">
           <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
             <DialogContent>
@@ -642,7 +658,7 @@ export function SessionCalendar({ students }: Props) {
           </Dialog>
           <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button type="button" onClick={openBlankDialog}>
+            <Button type="button" onClick={openBlankDialog} disabled={isMobile}>
               Book session
             </Button>
           </DialogTrigger>
@@ -808,7 +824,7 @@ export function SessionCalendar({ students }: Props) {
         </p>
       ) : null}
 
-      <div className="rounded-[var(--radius)] border border-border bg-card p-3">
+      <div className="rounded-2xl border border-border bg-card p-3 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         {calendarReady ? (
         <FullCalendar
           ref={calendarRef}
@@ -820,8 +836,8 @@ export function SessionCalendar({ students }: Props) {
           ]}
           initialView={persistedView}
           initialDate={initialDate}
-          selectable
-          editable
+          selectable={!isMobile}
+          editable={!isMobile}
           eventResizableFromStart
           weekends
           height="auto"
@@ -837,9 +853,19 @@ export function SessionCalendar({ students }: Props) {
             dayGridMonth: "Month",
             multiMonthYear: "Year",
           }}
+          titleFormat={{
+            year: "numeric",
+            month: "short",
+            day: isMobile ? undefined : "numeric",
+          }}
           selectMirror
           select={handleSelect}
           events={apiProvider}
+          eventClassNames={(arg) => {
+            const status = (arg.event.extendedProps as Record<string, unknown>)
+              .status;
+            return typeof status === "string" ? [`status-${status}`] : [];
+          }}
           eventDrop={handleEventChange}
           eventResize={handleEventChange}
           eventClick={(arg) => {
@@ -874,6 +900,6 @@ export function SessionCalendar({ students }: Props) {
         />
         ) : null}
       </div>
-    </div>
+    </section>
   );
 }

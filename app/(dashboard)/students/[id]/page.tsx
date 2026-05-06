@@ -67,7 +67,7 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
             aria-hidden
           />
           <div>
-            <h1 className="text-xl font-semibold text-card-foreground">
+            <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
               {student.name}
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -97,8 +97,10 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
         </p>
       ) : null}
 
-      <section className="rounded-[var(--radius)] border border-border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-medium text-card-foreground">Edit profile</h2>
+      <section className="rounded-2xl border border-border bg-card p-6 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+        <h2 className="text-base font-semibold tracking-tight text-card-foreground">
+          Edit profile
+        </h2>
         {archived ? (
           <p className="mt-2 text-sm text-muted-foreground">
             This student is archived. Editing is still allowed if you need to fix
@@ -147,9 +149,9 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
         </form>
       </section>
 
-      <section className="rounded-[var(--radius)] border border-border bg-card p-6 shadow-sm">
+      <section className="rounded-2xl border border-border bg-card p-6 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-lg font-medium text-card-foreground">
+          <h2 className="text-base font-semibold tracking-tight text-card-foreground">
             Prepaid packages
           </h2>
           {!archived ? <TopUpDialog studentId={id} /> : null}
@@ -189,8 +191,10 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
       </section>
 
       {!archived ? (
-        <section className="rounded-[var(--radius)] border border-destructive/30 bg-card p-6">
-          <h2 className="text-lg font-medium text-destructive">Archive student</h2>
+        <section className="rounded-2xl border border-destructive/30 bg-card p-6 ring-1 ring-destructive/20">
+          <h2 className="text-base font-semibold tracking-tight text-destructive">
+            Archive student
+          </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Removes the student from the main list. Packages and sessions are kept
             in the database.

@@ -16,7 +16,8 @@
 | 6     | Session lifecycle | **complete** | Status transitions in session dialog (scheduled/completed/cancel/no-show) + lifecycle balance tests                                   |
 | 7     | Dashboard         | **complete** | KPI strip, Recharts widgets, student rail with real aggregate data                                                                    |
 | 10    | iCal + CSV        | **complete** | `/api/ical/[token]` feed and `/api/csv/export|import` with settings entry points                                                     |
-| 11+   | …                 | pending      | See DESIGN.md                                                                                                                         |
+| 11    | Polish + a11y + responsive | **complete** | Dark mode toggle/persistence, reduced-motion CSS, mobile-safe calendar interactions, focus-safe dialog flows                         |
+| 12+   | …                 | pending      | See DESIGN.md                                                                                                                         |
 
 
 ## Decisions
@@ -37,11 +38,12 @@
 | `session-catchup.py` path missing under `$env:USERPROFILE\\.claude\\skills\\...` | 1       | Script not found; synced planning files manually from current repo state                        |
 | `session-catchup.py` file missing in current host layout                         | 1       | Manually synced planning files (`task_plan/progress/findings`)                                  |
 | Prisma migration drift after prior feature rollback                              | 1       | Re-synced by avoiding new schema migration and implementing Phase 10 with env token + APIs      |
+| None-blocking polish checks for lighthouse/playwright not available in-session   | 1       | Completed phase using automated gate + manual verification checklist updates                      |
 
 
 ## Next actions
 
-1. Phase 11: Polish / a11y / mobile / dark mode.
+1. Phase 12: Dockerize + deploy.
 2. Theme switching epic: original + dark theme (foundation → toggle → QA).
 3. EN/ZH localization epic: i18n foundation → switcher → rollout/QA.
 

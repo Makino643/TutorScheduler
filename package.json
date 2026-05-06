@@ -18,7 +18,8 @@
     "validate:phase5": "npm run test && npm run lint && npm run typecheck && npm run build",
     "validate:phase6": "npm run test && npm run lint && npm run typecheck && npm run build",
     "validate:phase7": "npm run test && npm run lint && npm run typecheck && npm run build",
-    "validate:phase10": "npm run test && npm run lint && npm run typecheck && npm run build"
+    "validate:phase10": "npm run test && npm run lint && npm run typecheck && npm run build",
+    "validate:phase11": "npm run test && npm run lint && npm run typecheck && npm run build"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
@@ -37,6 +38,7 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^1.14.0",
     "next": "^15.5.4",
     "next-auth": "5.0.0-beta.30",
     "react": "^19.2.0",

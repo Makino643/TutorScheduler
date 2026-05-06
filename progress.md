@@ -46,3 +46,10 @@ Format: `ISO date` — what changed — validation snippet.
   - Added CSV helper + tests: `lib/csv.ts`, `lib/csv.test.ts`.
   - Updated settings page with iCal URL display, CSV export links, and CSV import form.
 - **Phase 10 validation:** `npm run validate:phase10` passed (test/lint/typecheck/build).
+- **Phase 11 implemented (Polish + a11y + responsive):**
+  - Added dark mode token layer and persistence (`localStorage`) with startup hydration-safe script.
+  - Added header theme toggle for quick light/dark switching.
+  - Added reduced-motion global CSS fallback for accessibility preference.
+  - Updated calendar behavior for mobile widths (`<=640px`) to safe read-only interactions.
+  - Added semantic calendar section labeling for assistive technologies.
+- **Phase 11 validation:** `npm run validate:phase11` passed (test/lint/typecheck/build).

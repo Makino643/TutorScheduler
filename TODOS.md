@@ -28,4 +28,3 @@ Updated: 2026-05-06
 - Language switcher UI + persisted locale preference
 - Localize core routes (`/login`, `/dashboard`, `/students`, dialogs, validation text)
 - Locale QA for EN/ZH date/time/number formatting and missing keys
-

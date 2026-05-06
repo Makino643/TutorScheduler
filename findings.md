@@ -84,3 +84,10 @@
   - import: students and sessions with row-level error collection
 - For safer rollback flow after prior migration drift, Phase 10 implementation avoids introducing new schema migrations.
 
+## Phase 11 — polish/a11y/responsive
+
+- Dark mode implemented via CSS variable overrides on `.dark` class; no extra runtime theme library required.
+- Hydration flash is prevented by setting theme class in an inline pre-hydration script on the root layout.
+- Reduced motion is handled globally with a `prefers-reduced-motion` media query that minimizes transitions/animations.
+- Mobile calendar policy is read-only/safe interactions by disabling create/edit gestures on small widths.
+

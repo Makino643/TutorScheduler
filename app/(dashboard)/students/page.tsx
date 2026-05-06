@@ -23,7 +23,9 @@ export default async function StudentsPage() {
     <div className="mx-auto max-w-4xl">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-card-foreground">Students</h1>
+          <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
+            Students
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Active students only. Archive removes a student from this list.
           </p>
@@ -34,11 +36,11 @@ export default async function StudentsPage() {
       </div>
 
       {students.length === 0 ? (
-        <p className="mt-8 rounded-[var(--radius)] border border-border bg-card p-6 text-sm text-muted-foreground">
+        <p className="mt-8 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground ring-1 ring-border/40">
           No students yet. Use <strong>Add student</strong> to create one.
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-border rounded-[var(--radius)] border border-border bg-card">
+        <ul className="mt-6 divide-y divide-border rounded-2xl border border-border bg-card ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           {students.map((st) => {
             const remaining = computeRemainingHours({
               packages: st.packages,

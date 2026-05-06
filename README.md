@@ -44,6 +44,7 @@ Auth.js: `/api/auth/*` (JWT credentials against `Tutor` table).
 | `npm run validate:phase6` | Test + lint + typecheck + build (Phase 6 gate) |
 | `npm run validate:phase7` | Test + lint + typecheck + build (Phase 7 gate) |
 | `npm run validate:phase10` | Test + lint + typecheck + build (Phase 10 gate) |
+| `npm run validate:phase11` | Test + lint + typecheck + build (Phase 11 gate) |
 
 ## Troubleshooting
 
@@ -51,11 +52,11 @@ Auth.js: `/api/auth/*` (JWT credentials against `Tutor` table).
 - **500 / broken UI after switching tools:** delete `node_modules` and `.next`, then run **`npm install`** again (use only npm in this repo).
 - **Database / env:** ensure `.env` exists and run `npx prisma migrate dev` once.
 
-## Validation (Phases 0–10)
+## Validation (Phases 0–11)
 
-See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) (including **Phase 2 + 3 + 4 + 5 + 6 + 7 + 10 manual steps**).
+See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) (including **Phase 2 + 3 + 4 + 5 + 6 + 7 + 10 + 11 manual steps**).
 
-**Automated:** `npm run validate:phase1` (Phases 0–1); `npm run validate:phase2` adds balance tests; `npm run validate:phase3` covers calendar MVP; `npm run validate:phase4` adds recurrence validation; `npm run validate:phase5` covers VooV integration; `npm run validate:phase6` covers lifecycle transitions; `npm run validate:phase7` covers dashboard aggregates/widgets; `npm run validate:phase10` covers iCal + CSV APIs.
+**Automated:** `npm run validate:phase1` (Phases 0–1); `npm run validate:phase2` adds balance tests; `npm run validate:phase3` covers calendar MVP; `npm run validate:phase4` adds recurrence validation; `npm run validate:phase5` covers VooV integration; `npm run validate:phase6` covers lifecycle transitions; `npm run validate:phase7` covers dashboard aggregates/widgets; `npm run validate:phase10` covers iCal + CSV APIs; `npm run validate:phase11` covers polish/a11y/responsive updates.
 
 **Manual (auth):** `npm run dev` → `/` redirects to `/login` → sign in with seed credentials → `/dashboard` loads → **Sign out** returns to `/login`.
 
@@ -71,6 +72,7 @@ See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) 
 
 **Manual (dashboard):** KPI/chart/rail data checks are documented in [phase-status.md](./phase-status.md).
 **Manual (iCal + CSV):** tokenized iCal feed and CSV import/export checks are documented in [phase-status.md](./phase-status.md).
+**Manual (polish/a11y):** dark mode, keyboard flow, reduced motion, and mobile behavior checks are documented in [phase-status.md](./phase-status.md).
 
 **Database:** `npx prisma migrate dev` applies migrations to `prisma/dev.db`; `npm run db:seed` upserts the demo tutor.
 

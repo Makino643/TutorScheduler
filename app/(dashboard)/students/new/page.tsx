@@ -21,7 +21,9 @@ export default async function NewStudentPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-lg">
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold text-card-foreground">New student</h1>
+        <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
+          New student
+        </h1>
         <Button variant="outline" asChild>
           <Link href="/students">Back to list</Link>
         </Button>
@@ -38,7 +40,7 @@ export default async function NewStudentPage({ searchParams }: Props) {
 
       <form
         action={createStudent}
-        className="grid gap-4 rounded-[var(--radius)] border border-border bg-card p-6 shadow-sm"
+        className="grid gap-4 rounded-2xl border border-border bg-card p-6 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
       >
         <div className="grid gap-2">
           <Label htmlFor="name">Name</Label>

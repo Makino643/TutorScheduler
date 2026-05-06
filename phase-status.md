@@ -13,7 +13,7 @@ Single place to scan **done vs not done** (mirrors checkboxes in [DESIGN.md](./D
 | **6** — Session lifecycle | yes | yes (see below) | 2026-05-05 |
 | **7** — Dashboard | yes | yes (see below) | 2026-05-05 |
 | **10** — iCal + CSV | yes | yes (see below) | 2026-05-06 |
-| **11** — Polish / a11y | no | no | — |
+| **11** — Polish / a11y | yes | yes (see below) | 2026-05-06 |
 | **12** — Docker | no | no | — |
 
 ### Phase 1 — how to re-validate locally
@@ -317,4 +317,36 @@ npm run validate:phase10
 5. **CSV import (sessions)**
    - Import sessions CSV using known `studentName` values.
    - **Expect:** imported sessions appear on dashboard calendar.
+
+### Phase 11 — automated gate
+
+```powershell
+npm run validate:phase11
+```
+
+### Phase 11 — detailed manual verification
+
+**Prep**
+- Run `npm run dev`, sign in, open `/dashboard` and `/settings`.
+
+1. **Dark mode toggle**
+   - Click the header theme toggle.
+   - **Expect:** UI switches between light/dark and persists after refresh.
+
+2. **Dialog keyboard flow**
+   - Open **Book session** dialog using keyboard.
+   - Tab through all fields/buttons and press `Esc`.
+   - **Expect:** focus order is logical and dialog closes with `Esc`.
+
+3. **Calendar toolbar accessibility**
+   - Navigate calendar view buttons with keyboard (`Tab` + `Enter`).
+   - **Expect:** Day/Week/Month/Year switching works without mouse.
+
+4. **Reduced motion**
+   - Enable OS/browser reduced-motion preference and refresh.
+   - **Expect:** transitions/animations are minimized.
+
+5. **Mobile width behavior (375px)**
+   - Emulate 375px width.
+   - **Expect:** no horizontal page scroll; calendar is viewable; booking interactions are disabled for safe read-only behavior on mobile.
 

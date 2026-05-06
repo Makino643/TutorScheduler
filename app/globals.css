@@ -2,24 +2,29 @@
 
 /* TutorFlow design tokens (DESIGN.md §6) */
 @theme inline {
-  --color-background: oklch(0.98 0.012 60);
-  --color-foreground: oklch(0.22 0.02 50);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.22 0.02 50);
-  --color-primary: oklch(0.7 0.14 35);
-  --color-primary-foreground: oklch(0.99 0 0);
-  --color-accent: oklch(0.92 0.04 60);
-  --color-accent-foreground: oklch(0.22 0.02 50);
-  --color-muted: oklch(0.96 0.01 60);
-  --color-muted-foreground: oklch(0.45 0.02 50);
-  --color-border: oklch(0.9 0.01 60);
-  --color-sidebar: oklch(0.22 0.015 60);
-  --color-sidebar-foreground: oklch(0.96 0.01 60);
-  --color-ring: oklch(0.7 0.14 35 / 0.4);
-  --color-destructive: oklch(0.55 0.2 25);
-  --color-destructive-foreground: oklch(0.99 0 0);
-  --color-secondary: oklch(0.96 0.01 60);
-  --color-secondary-foreground: oklch(0.22 0.02 50);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
+  --color-sidebar-active-border: var(--sidebar-active-border);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --radius-lg: 0.875rem;
   --radius-md: calc(0.875rem - 2px);
   --radius-sm: calc(0.875rem - 4px);
@@ -36,14 +41,201 @@
   --accent: oklch(0.92 0.04 60);
   --accent-foreground: oklch(0.22 0.02 50);
   --muted: oklch(0.96 0.01 60);
-  --muted-foreground: oklch(0.45 0.02 50);
+  --muted-foreground: oklch(0.42 0.02 50);
   --border: oklch(0.9 0.01 60);
-  --ring: oklch(0.7 0.14 35 / 0.4);
+  --secondary: oklch(0.96 0.01 60);
+  --secondary-foreground: oklch(0.22 0.02 50);
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.7 0.14 35 / 0.55);
   --radius: 0.875rem;
+
+  /* Sidebar surface tokens (matches reference: dark with coral-tinted active row) */
+  --sidebar: oklch(0.24 0.012 60);
+  --sidebar-foreground: oklch(0.96 0.01 60);
+  --sidebar-border: oklch(0.32 0.012 60);
+  --sidebar-hover: oklch(0.29 0.014 60);
+  --sidebar-active: color-mix(in oklab, var(--primary) 18%, oklch(0.24 0.012 60));
+  --sidebar-active-foreground: oklch(0.99 0.02 60);
+  --sidebar-active-border: color-mix(in oklab, var(--primary) 45%, transparent);
+
+  /* Page background gradient */
+  --bg-stop-1: oklch(0.985 0.014 70);
+  --bg-stop-2: oklch(0.965 0.01 60);
+}
+
+.dark {
+  --background: oklch(0.19 0.01 260);
+  --foreground: oklch(0.95 0.01 60);
+  --card: oklch(0.24 0.01 260);
+  --card-foreground: oklch(0.95 0.01 60);
+  --primary: oklch(0.74 0.14 35);
+  --primary-foreground: oklch(0.13 0.01 260);
+  --accent: oklch(0.31 0.02 260);
+  --accent-foreground: oklch(0.95 0.01 60);
+  --muted: oklch(0.28 0.01 260);
+  --muted-foreground: oklch(0.78 0.01 260);
+  --border: oklch(0.34 0.01 260);
+  --ring: oklch(0.74 0.14 35 / 0.55);
+
+  --sidebar: oklch(0.16 0.01 260);
+  --sidebar-foreground: oklch(0.96 0.01 60);
+  --sidebar-border: oklch(0.28 0.01 260);
+  --sidebar-hover: oklch(0.23 0.012 260);
+  --sidebar-active: color-mix(in oklab, var(--primary) 22%, oklch(0.16 0.01 260));
+  --sidebar-active-foreground: oklch(0.99 0.02 60);
+  --sidebar-active-border: color-mix(in oklab, var(--primary) 55%, transparent);
+
+  --bg-stop-1: oklch(0.21 0.012 260);
+  --bg-stop-2: oklch(0.17 0.012 260);
 }
 
 @layer base {
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased overflow-x-hidden;
+    background-image: linear-gradient(
+      180deg,
+      var(--bg-stop-1) 0%,
+      var(--bg-stop-2) 100%
+    );
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply tracking-tight;
+    line-height: 1.2;
+  }
+
+  /* Unified, accessible focus style */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+/* ---------- FullCalendar visual harmony ---------- */
+.fc {
+  --fc-border-color: var(--border);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--muted);
+  --fc-list-event-hover-bg-color: var(--muted);
+  --fc-today-bg-color: color-mix(in oklab, var(--primary) 6%, transparent);
+  --fc-now-indicator-color: var(--primary);
+  font-family: var(--font-sans);
+  color: var(--card-foreground);
+}
+
+.fc .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.fc .fc-button {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: none;
+  box-shadow: none;
+  transition: background-color 120ms ease, color 120ms ease,
+    border-color 120ms ease;
+}
+.fc .fc-button:hover {
+  background: var(--muted);
+}
+.fc .fc-button:focus-visible,
+.fc .fc-button:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background: color-mix(in oklab, var(--primary) 12%, var(--card));
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+}
+
+.fc .fc-col-header-cell {
+  background: color-mix(in oklab, var(--muted) 60%, transparent);
+}
+.fc .fc-col-header-cell-cushion {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  padding: 6px 8px;
+}
+
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.fc .fc-event,
+.fc .fc-event:focus {
+  border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border));
+  border-left: 3px solid var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, var(--card));
+  color: var(--card-foreground);
+  border-radius: 6px;
+  padding: 1px 4px;
+  transition: filter 120ms ease;
+}
+.fc .fc-event:hover {
+  filter: brightness(0.97);
+}
+.fc .fc-event:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Status-tinted events */
+.fc .fc-event.status-COMPLETED {
+  border-left-color: color-mix(in oklab, var(--accent) 60%, var(--primary));
+  background: color-mix(in oklab, var(--accent) 60%, var(--card));
+}
+.fc .fc-event.status-NO_SHOW {
+  border-left-color: var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 10%, var(--card));
+}
+.fc .fc-event.status-CANCELLED_BY_TUTOR,
+.fc .fc-event.status-CANCELLED_BY_STUDENT {
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--muted) 80%, transparent),
+    color-mix(in oklab, var(--muted) 80%, transparent) 6px,
+    color-mix(in oklab, var(--muted-foreground) 12%, transparent) 6px,
+    color-mix(in oklab, var(--muted-foreground) 12%, transparent) 12px
+  );
+  border-left-color: var(--muted-foreground);
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
