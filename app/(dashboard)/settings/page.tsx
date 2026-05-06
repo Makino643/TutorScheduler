@@ -18,13 +18,14 @@ export default async function SettingsPage({ searchParams }: Props) {
     select: { voovPmrId: true, voovPmrPassword: true },
   });
   const { saved } = await searchParams;
+  const icalToken = process.env.ICAL_FEED_TOKEN ?? "dev-ical-token-change-me";
 
   return (
     <div className="mx-auto max-w-xl space-y-5">
       <h1 className="text-xl font-semibold text-card-foreground">Settings</h1>
       {saved === "1" ? (
         <p className="rounded-md border border-green-600/30 bg-green-100/40 px-3 py-2 text-sm text-green-800">
-          VooV settings saved.
+          Settings saved.
         </p>
       ) : null}
       <form
@@ -52,6 +53,52 @@ export default async function SettingsPage({ searchParams }: Props) {
           Save settings
         </Button>
       </form>
+      <section className="grid gap-4 rounded-[var(--radius)] border border-border bg-card p-6">
+        <h2 className="text-base font-medium text-card-foreground">
+          iCal + CSV
+        </h2>
+        <div className="grid gap-2 text-sm">
+          <p className="text-muted-foreground">iCal feed URL (copy into calendar app):</p>
+          <code className="rounded bg-muted px-2 py-1">
+            /api/ical/{icalToken}
+          </code>
+        </div>
+        <div className="flex flex-wrap gap-2 text-sm">
+          <a className="underline" href="/api/csv/export?entity=students">
+            Export students CSV
+          </a>
+          <a className="underline" href="/api/csv/export?entity=sessions">
+            Export sessions CSV
+          </a>
+        </div>
+        <form action="/api/csv/import" method="post" className="grid gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor="entity">Import entity</Label>
+            <select
+              id="entity"
+              name="entity"
+              className="h-9 rounded-md border border-border bg-background px-3 text-sm"
+              defaultValue="students"
+            >
+              <option value="students">Students</option>
+              <option value="sessions">Sessions</option>
+            </select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="csv">CSV content</Label>
+            <textarea
+              id="csv"
+              name="csv"
+              rows={6}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+              placeholder="Paste CSV rows here"
+            />
+          </div>
+          <Button type="submit" className="w-fit">
+            Import CSV
+          </Button>
+        </form>
+      </section>
     </div>
   );
 }

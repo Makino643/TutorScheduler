@@ -73,3 +73,14 @@
 
 - KPI/chart data is computed server-side from real rows (students, sessions, packages).
 - Student rail shows per-student computed remaining hours (`computeRemainingHours`) for quick balance scanning.
+
+## Phase 10 — iCal + CSV
+
+- iCal feed is implemented through tokenized route `GET /api/ical/[token]`:
+  - token checked against `ICAL_FEED_TOKEN`
+  - cancelled/archived sessions are excluded from feed events
+- CSV export/import is implemented via authenticated API routes:
+  - export: students and sessions
+  - import: students and sessions with row-level error collection
+- For safer rollback flow after prior migration drift, Phase 10 implementation avoids introducing new schema migrations.
+

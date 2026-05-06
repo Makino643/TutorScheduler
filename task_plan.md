@@ -15,7 +15,8 @@
 | 5     | VooV integration  | **complete** | PMR settings page, MeetingProvider + tests, Join/Copy on session, meeting override fields                                             |
 | 6     | Session lifecycle | **complete** | Status transitions in session dialog (scheduled/completed/cancel/no-show) + lifecycle balance tests                                   |
 | 7     | Dashboard         | **complete** | KPI strip, Recharts widgets, student rail with real aggregate data                                                                    |
-| 8+    | …                 | pending      | See DESIGN.md                                                                                                                         |
+| 10    | iCal + CSV        | **complete** | `/api/ical/[token]` feed and `/api/csv/export|import` with settings entry points                                                     |
+| 11+   | …                 | pending      | See DESIGN.md                                                                                                                         |
 
 
 ## Decisions
@@ -35,11 +36,12 @@
 | Windows EPERM when `prisma generate` rewrites engine DLL                         | 1       | `build` script changed to `next build`; Prisma client still generated on `postinstall`          |
 | `session-catchup.py` path missing under `$env:USERPROFILE\\.claude\\skills\\...` | 1       | Script not found; synced planning files manually from current repo state                        |
 | `session-catchup.py` file missing in current host layout                         | 1       | Manually synced planning files (`task_plan/progress/findings`)                                  |
+| Prisma migration drift after prior feature rollback                              | 1       | Re-synced by avoiding new schema migration and implementing Phase 10 with env token + APIs      |
 
 
 ## Next actions
 
-1. Phase 8: Reminders (T-24h/T-1h pipeline).
+1. Phase 11: Polish / a11y / mobile / dark mode.
 2. Theme switching epic: original + dark theme (foundation → toggle → QA).
 3. EN/ZH localization epic: i18n foundation → switcher → rollout/QA.
 

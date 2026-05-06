@@ -12,9 +12,7 @@ Single place to scan **done vs not done** (mirrors checkboxes in [DESIGN.md](./D
 | **5** — VooV | yes | yes (see below) | 2026-05-05 |
 | **6** — Session lifecycle | yes | yes (see below) | 2026-05-05 |
 | **7** — Dashboard | yes | yes (see below) | 2026-05-05 |
-| **8** — Reminders | no | no | — |
-| **9** — Working hours | no | no | — |
-| **10** — iCal + CSV | no | no | — |
+| **10** — iCal + CSV | yes | yes (see below) | 2026-05-06 |
 | **11** — Polish / a11y | no | no | — |
 | **12** — Docker | no | no | — |
 
@@ -285,3 +283,38 @@ npm run validate:phase7
 5. **Route-switch calendar persistence**
    - Navigate `/dashboard` → `/students` (or `/settings`) → back to `/dashboard`.
    - **Expect:** calendar keeps previous view/date (no reset to current week start).
+
+### Phase 10 — automated gate
+
+```powershell
+npm run validate:phase10
+```
+
+### Phase 10 — detailed manual verification
+
+**Prep**
+- Ensure `ICAL_FEED_TOKEN` is present in `.env`.
+- Ensure at least one student and one session exist.
+
+1. **iCal token route**
+   - Open `/api/ical/<ICAL_FEED_TOKEN>` in browser.
+   - **Expect:** response starts with `BEGIN:VCALENDAR`.
+   - Open `/api/ical/wrong-token`.
+   - **Expect:** 404.
+
+2. **CSV export (students)**
+   - Open `/api/csv/export?entity=students` while logged in.
+   - **Expect:** CSV download with student columns and rows.
+
+3. **CSV export (sessions)**
+   - Open `/api/csv/export?entity=sessions` while logged in.
+   - **Expect:** CSV download with session rows and timestamps.
+
+4. **CSV import (students)**
+   - In `/settings`, paste small students CSV into import box and submit.
+   - **Expect:** API returns JSON summary (`imported`, `errors`) and new students appear in `/students`.
+
+5. **CSV import (sessions)**
+   - Import sessions CSV using known `studentName` values.
+   - **Expect:** imported sessions appear on dashboard calendar.
+

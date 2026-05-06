@@ -34,3 +34,15 @@ Format: `ISO date` — what changed — validation snippet.
 - **Dashboard reload UX fix:** calendar now persists view/date and event cache in `sessionStorage`, so switching between `/dashboard` and `/students`/`/settings` no longer resets week position or cold-loads immediately.
 - **Phase 7 implemented:** dashboard now includes KPI strip + Recharts status/load widgets + student rail (real DB aggregates) above calendar.
 - **Phase 7 validation:** `npm run validate:phase7` passed (test/lint/typecheck/build).
+
+## 2026-05-06
+
+- Removed the working-hours/blackout implementation from codebase and settings flow.
+- **Phase 10 implemented (iCal + CSV):**
+  - Added iCal feed endpoint: `GET /api/ical/[token]` (token from `ICAL_FEED_TOKEN`).
+  - Added CSV endpoints:
+    - `GET /api/csv/export?entity=students|sessions`
+    - `POST /api/csv/import` for students/sessions CSV payloads
+  - Added CSV helper + tests: `lib/csv.ts`, `lib/csv.test.ts`.
+  - Updated settings page with iCal URL display, CSV export links, and CSV import form.
+- **Phase 10 validation:** `npm run validate:phase10` passed (test/lint/typecheck/build).
