@@ -104,6 +104,8 @@ function eventOverlapsRange(
 }
 
 export function SessionCalendar({ students }: Props) {
+  const focusStartTime = "06:00:00";
+  const defaultScrollTime = "08:00:00";
   const calendarRef = useRef<FullCalendar | null>(null);
   const eventsCacheRef = useRef<Map<string, EventInput[]>>(new Map());
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +123,8 @@ export function SessionCalendar({ students }: Props) {
   );
   const [meetingOpen, setMeetingOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showEarlyHours, setShowEarlyHours] = useState(false);
+  const [hiddenEarlyCount, setHiddenEarlyCount] = useState(0);
 
   const [calendarReady, setCalendarReady] = useState(false);
   const [persistedView, setPersistedView] = useState<string>("timeGridWeek");
@@ -416,6 +420,16 @@ export function SessionCalendar({ students }: Props) {
     return (await res.json()) as EventInput[];
   };
 
+  const countEarlySessions = (events: EventInput[]): number =>
+    events.reduce((count, event) => {
+      const start = event.start;
+      if (!start) return count;
+      const startDate =
+        start instanceof Date ? start : new Date(start as string | number);
+      if (!Number.isFinite(startDate.getTime())) return count;
+      return startDate.getHours() < 6 ? count + 1 : count;
+    }, 0);
+
   const prefetchAdjacentRanges = async (startStr: string, endStr: string) => {
     const start = new Date(startStr);
     const end = new Date(endStr);
@@ -465,6 +479,7 @@ export function SessionCalendar({ students }: Props) {
     const key = `${_fetchInfo.startStr}|${_fetchInfo.endStr}`;
     const cached = eventsCacheRef.current.get(key);
     if (cached) {
+      setHiddenEarlyCount(countEarlySessions(cached));
       successCallback(cached);
       return;
     }
@@ -472,6 +487,7 @@ export function SessionCalendar({ students }: Props) {
     fetchEventsRange(_fetchInfo.startStr, _fetchInfo.endStr)
       .then((events) => {
         eventsCacheRef.current.set(key, events);
+        setHiddenEarlyCount(countEarlySessions(events));
         successCallback(events);
         void prefetchAdjacentRanges(_fetchInfo.startStr, _fetchInfo.endStr);
       })
@@ -806,6 +822,20 @@ export function SessionCalendar({ students }: Props) {
         </p>
       ) : null}
 
+      {!showEarlyHours && hiddenEarlyCount > 0 ? (
+        <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs text-primary">
+          {hiddenEarlyCount} session{hiddenEarlyCount === 1 ? "" : "s"} before
+          06:00 hidden in compact view.
+          <button
+            type="button"
+            className="ml-2 font-semibold underline underline-offset-2"
+            onClick={() => setShowEarlyHours(true)}
+          >
+            Expand early hours
+          </button>
+        </div>
+      ) : null}
+
       <div className="rounded-2xl border border-border bg-card p-3 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         {calendarReady ? (
         <FullCalendar
@@ -823,11 +853,14 @@ export function SessionCalendar({ students }: Props) {
           eventResizableFromStart
           weekends
           height="auto"
+          slotMinTime={showEarlyHours ? "00:00:00" : focusStartTime}
+          scrollTime={showEarlyHours ? "00:00:00" : defaultScrollTime}
+          scrollTimeReset={false}
           headerToolbar={{
             left: "prev,next today",
             center: "title",
             right:
-              "bookSession timeGridDay,timeGridWeek,dayGridMonth,multiMonthYear",
+              "bookSession,toggleEarly timeGridDay,timeGridWeek,dayGridMonth,multiMonthYear",
           }}
           customButtons={{
             bookSession: {
@@ -838,6 +871,12 @@ export function SessionCalendar({ students }: Props) {
                   return;
                 }
                 openBlankDialog();
+              },
+            },
+            toggleEarly: {
+              text: showEarlyHours ? "Shrink early" : "Expand early",
+              click: () => {
+                setShowEarlyHours((prev) => !prev);
               },
             },
           }}
