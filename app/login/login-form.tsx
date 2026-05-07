@@ -5,8 +5,13 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/language-toggle";
+import { type Locale, copy } from "@/lib/i18n";
 
-export function LoginForm() {
+type Props = { locale: Locale };
+
+export function LoginForm({ locale }: Props) {
+  const authCopy = copy[locale].auth;
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
   const [error, setError] = useState<string | null>(null);
@@ -14,11 +19,14 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm rounded-[var(--radius)] border border-border bg-card p-8 shadow-sm">
+      <div className="mb-3 flex justify-end">
+        <LanguageToggle locale={locale} variant="outline" />
+      </div>
       <h1 className="text-center text-xl font-semibold text-card-foreground">
         TutorFlow
       </h1>
       <p className="mt-1 text-center text-sm text-muted-foreground">
-        Sign in to your tutor account
+        {authCopy.signInTitle}
       </p>
       <form
         className="mt-6 space-y-4"
@@ -40,7 +48,7 @@ export function LoginForm() {
               callbackUrl,
             });
             if (res?.error) {
-              setError("Invalid email or password.");
+              setError(authCopy.invalidCredentials);
               setPending(false);
               return;
             }
@@ -50,7 +58,7 @@ export function LoginForm() {
             }
             window.location.href = callbackUrl;
           } catch {
-            setError("Something went wrong. Try again.");
+            setError(authCopy.genericError);
             setPending(false);
           }
         }}
@@ -60,7 +68,7 @@ export function LoginForm() {
             htmlFor="email"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            Email
+            {authCopy.email}
           </label>
           <input
             id="email"
@@ -76,7 +84,7 @@ export function LoginForm() {
             htmlFor="password"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            Password
+            {authCopy.password}
           </label>
           <input
             id="password"
@@ -93,7 +101,7 @@ export function LoginForm() {
           </p>
         ) : null}
         <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
+          {pending ? authCopy.signingIn : authCopy.signIn}
         </Button>
       </form>
     </div>

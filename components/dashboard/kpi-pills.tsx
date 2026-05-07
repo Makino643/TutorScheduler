@@ -11,6 +11,12 @@ type Kpi = {
 
 type Props = {
   kpi: Kpi;
+  labels: {
+    totalStudents: string;
+    sessions7d: string;
+    remainingHours: string;
+    hoursThisMonth: string;
+  };
   className?: string;
 };
 
@@ -21,25 +27,25 @@ function formatHours(n: number): string {
   }).format(n);
 }
 
-export function KpiPills({ kpi, className }: Props) {
+export function KpiPills({ kpi, labels, className }: Props) {
   const items = [
     {
-      label: "Total students",
+      label: labels.totalStudents,
       value: kpi.activeStudents.toString(),
       icon: Users,
     },
     {
-      label: "Sessions next 7d",
+      label: labels.sessions7d,
       value: kpi.upcoming7d.toString(),
       icon: CalendarClock,
     },
     {
-      label: "Remaining hours",
+      label: labels.remainingHours,
       value: formatHours(kpi.remainingHoursTotal),
       icon: Hourglass,
     },
     {
-      label: "Hours this month",
+      label: labels.hoursThisMonth,
       value: formatHours(kpi.consumedThisMonth),
       icon: GraduationCap,
     },

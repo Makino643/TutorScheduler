@@ -11,24 +11,27 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { copy, type Locale } from "@/lib/i18n";
 
 type Props = {
   studentId: string;
+  locale: Locale;
 };
 
-export function TopUpDialog({ studentId }: Props) {
+export function TopUpDialog({ studentId, locale }: Props) {
+  const c = copy[locale].students;
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button type="button">Top up hours</Button>
+        <Button type="button">{c.topUpHours}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add prepaid hours</DialogTitle>
+          <DialogTitle>{c.prepaidPackages}</DialogTitle>
         </DialogHeader>
         <form action={addPackage.bind(null, studentId)} className="grid gap-4 pt-2">
           <div className="grid gap-2">
-            <Label htmlFor="hoursPurchased">Hours purchased</Label>
+            <Label htmlFor="hoursPurchased">{c.hours}</Label>
             <Input
               id="hoursPurchased"
               name="hoursPurchased"
@@ -40,20 +43,20 @@ export function TopUpDialog({ studentId }: Props) {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="pricePerSession">Price per session (optional)</Label>
+            <Label htmlFor="pricePerSession">{c.pricePerSession}</Label>
             <Input
               id="pricePerSession"
               name="pricePerSession"
               type="text"
-              placeholder="informational only"
+              placeholder={c.note}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="note">Note (optional)</Label>
+            <Label htmlFor="note">{c.note}</Label>
             <Input id="note" name="note" type="text" />
           </div>
           <Button type="submit" className="w-full sm:w-auto">
-            Save package
+            {c.saveChanges}
           </Button>
         </form>
       </DialogContent>

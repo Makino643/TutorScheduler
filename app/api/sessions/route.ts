@@ -81,6 +81,7 @@ export async function GET(req: Request) {
         extendedProps: {
           studentId: s.studentId,
           subject: s.subject,
+          notes: s.notes,
           status: s.status,
           recurrenceId: s.recurrenceId,
           blocksTime: !isCancelled(s.status),
@@ -192,6 +193,7 @@ export async function POST(req: Request) {
     extendedProps: {
       studentId: first.studentId,
       subject: first.subject,
+      notes: first.notes,
       status: first.status,
       recurrenceId: first.recurrenceId,
       blocksTime: true,

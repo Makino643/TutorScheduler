@@ -1,0 +1,18 @@
+services:
+  tutorflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tutorflow
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    environment:
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      DATABASE_URL: "file:/app/prisma/dev.db"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./prisma:/app/prisma
+

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { computeRemainingHours } from "@/lib/balance";
 import { db } from "@/lib/db";
+import { copy } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n-server";
 import { subjectsToCommaString } from "@/lib/student-subjects";
 
 function formatHours(n: number): string {
@@ -23,6 +25,8 @@ type Props = {
 };
 
 export default async function StudentDetailPage({ params, searchParams }: Props) {
+  const locale = await getServerLocale();
+  const studentsCopy = copy[locale].students;
   const { id } = await params;
   const { error } = await searchParams;
 
@@ -45,11 +49,11 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
 
   const errorMessage =
     error === "Name+required"
-      ? "Name is required."
+      ? studentsCopy.nameRequired
       : error === "Invalid+hours"
-        ? "Hours must be a positive number."
+        ? studentsCopy.invalidHours
         : error === "Invalid+price"
-          ? "Price per session must be a valid decimal."
+          ? studentsCopy.invalidPrice
           : error
             ? decodeURIComponent(error.replace(/\+/g, " "))
             : null;
@@ -71,20 +75,20 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
               {student.name}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Balance:{" "}
+              {studentsCopy.balance}:{" "}
               <span className="font-medium tabular-nums text-card-foreground">
                 {formatHours(remaining)} h
               </span>
               {archived ? (
                 <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs">
-                  Archived
+                  {studentsCopy.archived}
                 </span>
               ) : null}
             </p>
           </div>
         </div>
         <Button variant="outline" asChild>
-          <Link href="/students">All students</Link>
+          <Link href="/students">{studentsCopy.allStudents}</Link>
         </Button>
       </div>
 
@@ -99,12 +103,11 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
 
       <section className="rounded-2xl border border-border bg-card p-6 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         <h2 className="text-base font-semibold tracking-tight text-card-foreground">
-          Edit profile
+          {studentsCopy.editProfile}
         </h2>
         {archived ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            This student is archived. Editing is still allowed if you need to fix
-            data.
+            {studentsCopy.archivedEditHint}
           </p>
         ) : null}
         <form
@@ -112,11 +115,11 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
           className="mt-4 grid gap-4"
         >
           <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{studentsCopy.name}</Label>
             <Input id="name" name="name" required defaultValue={student.name} />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="gradeLevel">Grade level</Label>
+            <Label htmlFor="gradeLevel">{studentsCopy.gradeLevel}</Label>
             <Input
               id="gradeLevel"
               name="gradeLevel"
@@ -124,7 +127,7 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="subjects">Subjects (comma-separated)</Label>
+            <Label htmlFor="subjects">{studentsCopy.subjectsComma}</Label>
             <Input
               id="subjects"
               name="subjects"
@@ -132,7 +135,7 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="parentContact">Parent contact</Label>
+            <Label htmlFor="parentContact">{studentsCopy.parentContact}</Label>
             <Input
               id="parentContact"
               name="parentContact"
@@ -140,11 +143,11 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes">{studentsCopy.notes}</Label>
             <Input id="notes" name="notes" defaultValue={student.notes ?? ""} />
           </div>
           <Button type="submit" className="w-fit">
-            Save changes
+            {studentsCopy.saveChanges}
           </Button>
         </form>
       </section>
@@ -152,21 +155,21 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
       <section className="rounded-2xl border border-border bg-card p-6 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-base font-semibold tracking-tight text-card-foreground">
-            Prepaid packages
+            {studentsCopy.prepaidPackages}
           </h2>
-          {!archived ? <TopUpDialog studentId={id} /> : null}
+          {!archived ? <TopUpDialog studentId={id} locale={locale} /> : null}
         </div>
         {student.packages.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No packages yet.</p>
+          <p className="mt-4 text-sm text-muted-foreground">{studentsCopy.noPackages}</p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[28rem] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-muted-foreground">
-                  <th className="py-2 pr-4 font-medium">Purchased</th>
-                  <th className="py-2 pr-4 font-medium">Hours</th>
-                  <th className="py-2 pr-4 font-medium">Price / session</th>
-                  <th className="py-2 font-medium">Note</th>
+                  <th className="py-2 pr-4 font-medium">{studentsCopy.purchased}</th>
+                  <th className="py-2 pr-4 font-medium">{studentsCopy.hours}</th>
+                  <th className="py-2 pr-4 font-medium">{studentsCopy.pricePerSession}</th>
+                  <th className="py-2 font-medium">{studentsCopy.note}</th>
                 </tr>
               </thead>
               <tbody>
@@ -193,15 +196,14 @@ export default async function StudentDetailPage({ params, searchParams }: Props)
       {!archived ? (
         <section className="rounded-2xl border border-destructive/30 bg-card p-6 ring-1 ring-destructive/20">
           <h2 className="text-base font-semibold tracking-tight text-destructive">
-            Archive student
+            {studentsCopy.archiveStudent}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Removes the student from the main list. Packages and sessions are kept
-            in the database.
+            {studentsCopy.archiveHint}
           </p>
           <form action={archiveStudent.bind(null, id)} className="mt-4">
             <Button type="submit" variant="destructive">
-              Archive student
+              {studentsCopy.archiveStudent}
             </Button>
           </form>
         </section>

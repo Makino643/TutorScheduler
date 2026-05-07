@@ -14,7 +14,7 @@ Single place to scan **done vs not done** (mirrors checkboxes in [DESIGN.md](./D
 | **7** — Dashboard | yes | yes (see below) | 2026-05-05 |
 | **10** — iCal + CSV | yes | yes (see below) | 2026-05-06 |
 | **11** — Polish / a11y | yes | yes (see below) | 2026-05-06 |
-| **12** — Docker | no | no | — |
+| **12** — Docker | yes | yes (lint/typecheck + deployment docs) | 2026-05-07 |
 
 ### Phase 1 — how to re-validate locally
 
@@ -349,4 +349,24 @@ npm run validate:phase11
 5. **Mobile width behavior (375px)**
    - Emulate 375px width.
    - **Expect:** no horizontal page scroll; calendar is viewable; booking interactions are disabled for safe read-only behavior on mobile.
+
+### Localization (EN/ZH) — manual verification
+
+1. **Language toggle visibility**
+   - Desktop: left sidebar footer (near theme + sign out).
+   - Mobile: top bar.
+   - Login page: top of login card.
+   - **Expect:** toggle visible in all three contexts.
+
+2. **Locale switch behavior**
+   - Click language toggle (`EN`/`中`).
+   - **Expect:** page reloads in target locale and persists across navigation/refresh.
+
+3. **Core route translation**
+   - Verify `/login`, `/dashboard`, `/students`, `/students/new`, `/students/[id]`, `/settings`.
+   - **Expect:** headers, subtitles, major form labels, and key actions show target locale strings.
+
+4. **Calendar interaction text**
+   - Open booking dialog and meeting dialog on `/dashboard`.
+   - **Expect:** key button/label text (book/save/archive/scope controls/day-week-month-year) follows current locale.
 

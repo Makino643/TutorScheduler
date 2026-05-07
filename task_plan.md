@@ -17,6 +17,8 @@
 | 7     | Dashboard         | **complete** | KPI strip, Recharts widgets, student rail with real aggregate data                                                                    |
 | 10    | iCal + CSV        | **complete** | `/api/ical/[token]` feed and `/api/csv/export|import` with settings entry points                                                     |
 | 11    | Polish + a11y + responsive | **complete** | Dark mode toggle/persistence, reduced-motion CSS, mobile-safe calendar interactions, focus-safe dialog flows                         |
+| 12    | Docker + deploy   | **complete** | Dockerfile + docker-compose + Windows LAN deployment runbook (`docs/deploy/windows-lan-docker.md`)                                  |
+| i18n  | EN/ZH localization | **complete** | Locale foundation (`lib/i18n.ts`), language switcher, core routes/components localized                                                |
 | 12+   | …                 | pending      | See DESIGN.md                                                                                                                         |
 
 
@@ -43,7 +45,7 @@
 
 ## Next actions
 
-1. Phase 12: Dockerize + deploy.
-2. Theme switching epic: original + dark theme (foundation → toggle → QA).
-3. EN/ZH localization epic: i18n foundation → switcher → rollout/QA.
+1. Theme switching polish QA across all pages and edge components.
+2. Locale QA expansion for date/time/number formatting edge cases.
+3. Optional: settings-level locale/theme preferences sync to user profile (server-side).
 

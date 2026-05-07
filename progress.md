@@ -53,3 +53,17 @@ Format: `ISO date` — what changed — validation snippet.
   - Updated calendar behavior for mobile widths (`<=640px`) to safe read-only interactions.
   - Added semantic calendar section labeling for assistive technologies.
 - **Phase 11 validation:** `npm run validate:phase11` passed (test/lint/typecheck/build).
+
+## 2026-05-07
+
+- **Phase 12 implemented (Docker/LAN deploy):**
+  - Added `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.docker.example`.
+  - Added deployment runbook: `docs/deploy/windows-lan-docker.md`.
+  - Updated `.env.example` (`NEXTAUTH_URL`) + `README.md` Docker LAN section.
+  - Fixed Docker build issue by copying `prisma/` before `npm ci` and installing `openssl`.
+- **Localization implemented (EN/ZH):**
+  - Added locale foundation: `lib/i18n.ts` (cookie-backed locale, dictionaries, template replacement).
+  - Added language switch UI: `components/language-toggle.tsx`.
+  - Integrated locale in layout hydration + dashboard shell + mobile bar + login.
+  - Localized core routes/components: `/login`, `/dashboard`, `/students`, `/students/new`, `/students/[id]`, `/settings`, dashboard widgets, calendar interaction labels.
+- **Validation:** `npm run lint` and `npx tsc --noEmit` passed after i18n + deploy changes.

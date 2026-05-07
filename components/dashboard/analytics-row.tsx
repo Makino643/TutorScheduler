@@ -26,6 +26,15 @@ type Props = {
   statusSeries: StatusDatum[];
   next7DaysSeries: DayDatum[];
   topStudents: StudentDatum[];
+  labels: {
+    performanceTitle: string;
+    performanceSubtitle: string;
+    topStudentsTitle: string;
+    topStudentsSubtitle: string;
+    weeklyTitle: string;
+    weeklySubtitle: string;
+    statusLabels: Partial<Record<string, string>>;
+  };
   /** Outer grid classes; defaults to a single column suitable for a side rail. */
   className?: string;
   /** Chart canvas height in pixels (defaults to 176, denser for side rail). */
@@ -87,19 +96,20 @@ export function AnalyticsRow({
   statusSeries,
   next7DaysSeries,
   topStudents,
+  labels,
   className,
   chartHeight = 176,
 }: Props) {
   const radarData = statusSeries.map((d) => ({
-    metric: friendlyStatus[d.name] ?? d.name,
+    metric: labels.statusLabels[d.name] ?? friendlyStatus[d.name] ?? d.name,
     value: d.value,
   }));
 
   return (
     <div className={cn("grid gap-3", className)}>
       <ChartCard
-        title="Tutor performance metrics"
-        subtitle="Sessions by status"
+        title={labels.performanceTitle}
+        subtitle={labels.performanceSubtitle}
         height={chartHeight}
       >
         <RadarChart data={radarData} outerRadius="72%">
@@ -116,8 +126,8 @@ export function AnalyticsRow({
       </ChartCard>
 
       <ChartCard
-        title="Top students by hours remaining"
-        subtitle="Top 6 prepaid balances"
+        title={labels.topStudentsTitle}
+        subtitle={labels.topStudentsSubtitle}
         height={chartHeight}
       >
         <BarChart data={topStudents} margin={{ top: 4, right: 8, left: -16, bottom: 16 }}>
@@ -141,8 +151,8 @@ export function AnalyticsRow({
       </ChartCard>
 
       <ChartCard
-        title="Weekly session volume"
-        subtitle="Next 7 days"
+        title={labels.weeklyTitle}
+        subtitle={labels.weeklySubtitle}
         height={chartHeight}
       >
         <LineChart data={next7DaysSeries} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>

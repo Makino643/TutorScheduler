@@ -13,7 +13,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
+import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { type Locale, replaceTemplate } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -39,6 +41,19 @@ type Props = {
   displayName: string;
   email: string;
   nextSessionMinutes: number | null;
+  locale: Locale;
+  labels: {
+    dashboard: string;
+    students: string;
+    settings: string;
+    signOut: string;
+    scheduleUpToDate: string;
+    noUpcomingSessions: string;
+    nextSessionIn: string;
+    bookToSee: string;
+    lessThanMinute: string;
+    min: string;
+  };
   className?: string;
   /** When true, render without sticky positioning (used inside a mobile drawer). */
   inDrawer?: boolean;
@@ -48,6 +63,8 @@ export function DashboardSidebar({
   displayName,
   email,
   nextSessionMinutes,
+  locale,
+  labels,
   className,
   inDrawer = false,
 }: Props) {
@@ -55,12 +72,14 @@ export function DashboardSidebar({
 
   const statusHeadline =
     nextSessionMinutes != null && nextSessionMinutes >= 0
-      ? "Schedule up to date."
-      : "No upcoming sessions.";
+      ? labels.scheduleUpToDate
+      : labels.noUpcomingSessions;
   const statusDetail =
     nextSessionMinutes != null && nextSessionMinutes >= 0
-      ? `Next session in ${formatMinutes(nextSessionMinutes)}.`
-      : "Book a session to see it here.";
+      ? replaceTemplate(labels.nextSessionIn, {
+          time: formatMinutes(nextSessionMinutes, labels.lessThanMinute, labels.min),
+        })
+      : labels.bookToSee;
 
   return (
     <aside
@@ -119,7 +138,13 @@ export function DashboardSidebar({
                   >
                     <Icon className="h-4 w-4" aria-hidden />
                   </span>
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate">
+                    {item.href === "/dashboard"
+                      ? labels.dashboard
+                      : item.href === "/students"
+                        ? labels.students
+                        : labels.settings}
+                  </span>
                   {active ? <span className="sr-only">(current page)</span> : null}
                 </Link>
               </li>
@@ -164,6 +189,7 @@ export function DashboardSidebar({
         </div>
 
         <div className="mt-3 flex items-center gap-2">
+          <LanguageToggle locale={locale} />
           <ThemeToggle />
           <button
             type="button"
@@ -176,7 +202,7 @@ export function DashboardSidebar({
             aria-label="Sign out"
           >
             <LogOut className="h-3.5 w-3.5" aria-hidden />
-            <span>Sign out</span>
+            <span>{labels.signOut}</span>
           </button>
         </div>
       </div>
@@ -184,9 +210,9 @@ export function DashboardSidebar({
   );
 }
 
-function formatMinutes(total: number): string {
-  if (total < 1) return "less than a minute";
-  if (total < 60) return `${total} min${total === 1 ? "" : "s"}`;
+function formatMinutes(total: number, lessThanMinute: string, minLabel: string): string {
+  if (total < 1) return lessThanMinute;
+  if (total < 60) return `${total} ${minLabel}`;
   const hours = Math.floor(total / 60);
   const minutes = total % 60;
   if (hours < 24) {

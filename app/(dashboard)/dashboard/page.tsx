@@ -6,8 +6,12 @@ import { StudentsPanel } from "@/components/dashboard/students-panel";
 import { SessionCalendar } from "@/components/calendar/session-calendar";
 import { computeRemainingHours, sumConsumedHours } from "@/lib/balance";
 import { db } from "@/lib/db";
+import { copy } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n-server";
 
 export default async function DashboardPage() {
+  const locale = await getServerLocale();
+  const dashboardCopy = copy[locale].dashboard;
   const now = new Date();
   const in7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -130,18 +134,18 @@ export default async function DashboardPage() {
         <div className="flex flex-wrap items-start gap-8">
           <div>
           <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
-            Welcome back
+            {dashboardCopy.welcome}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Here&apos;s a snapshot of your scheduling and student balances.
+            {dashboardCopy.snapshot}
           </p>
           </div>
           <div>
             <h2 className="text-lg font-semibold tracking-tight text-card-foreground">
-              Weekly schedule
+              {dashboardCopy.weeklySchedule}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Drag to reschedule. Click a session to manage status and meeting links.
+              {dashboardCopy.weeklyHint}
             </p>
           </div>
         </div>
@@ -151,11 +155,10 @@ export default async function DashboardPage() {
         <div className="min-w-0">
           {activeStudents.length === 0 ? (
             <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground ring-1 ring-border/40">
-              Add at least one student in <strong>/students</strong> before booking
-              sessions on the calendar.
+              {dashboardCopy.addStudentHint}
             </div>
           ) : (
-            <SessionCalendar students={activeStudents} />
+            <SessionCalendar students={activeStudents} locale={locale} />
           )}
         </div>
 
@@ -167,6 +170,12 @@ export default async function DashboardPage() {
               remainingHoursTotal,
               consumedThisMonth,
             }}
+            labels={{
+              totalStudents: dashboardCopy.kpiTotalStudents,
+              sessions7d: dashboardCopy.kpiSessions7d,
+              remainingHours: dashboardCopy.kpiRemaining,
+              hoursThisMonth: dashboardCopy.kpiThisMonth,
+            }}
             className="grid-cols-2 sm:grid-cols-2"
           />
 
@@ -174,9 +183,36 @@ export default async function DashboardPage() {
             statusSeries={statusSeries}
             next7DaysSeries={next7DaysSeries}
             topStudents={topStudents}
+            labels={{
+              performanceTitle: dashboardCopy.chartPerformance,
+              performanceSubtitle: dashboardCopy.chartByStatus,
+              topStudentsTitle: dashboardCopy.chartTopStudents,
+              topStudentsSubtitle: dashboardCopy.chartTopStudentsSub,
+              weeklyTitle: dashboardCopy.chartWeeklyVolume,
+              weeklySubtitle: dashboardCopy.chartWeeklyVolumeSub,
+              statusLabels: {
+                SCHEDULED: dashboardCopy.scheduled,
+                COMPLETED: dashboardCopy.completed,
+                NO_SHOW: dashboardCopy.noShow,
+                CANCELLED_BY_TUTOR: dashboardCopy.cancelledByTutor,
+                CANCELLED_BY_STUDENT: dashboardCopy.cancelledByStudent,
+              },
+            }}
           />
 
-          <StudentsPanel students={studentSummaries.slice(0, 12)} />
+          <StudentsPanel
+            students={studentSummaries.slice(0, 12)}
+            labels={{
+              panelTitle: dashboardCopy.panelProfiles,
+              panelSubtitle: dashboardCopy.panelLive,
+              viewAll: dashboardCopy.panelViewAll,
+              empty: dashboardCopy.panelAddStudent,
+              gradeFallback: dashboardCopy.gradeFallback,
+              hoursLeftSuffix: dashboardCopy.hoursLeft,
+              utilization: (pct) =>
+                dashboardCopy.utilization.replace("{pct}", String(pct)),
+            }}
+          />
         </aside>
       </div>
     </div>

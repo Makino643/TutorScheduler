@@ -1,6 +1,6 @@
 # TutorFlow TODOs
 
-Updated: 2026-05-06
+Updated: 2026-05-07
 
 ## Core phases
 
@@ -14,7 +14,7 @@ Updated: 2026-05-06
 - Phase 7 — Dashboard widgets
 - Phase 10 — iCal + CSV
 - Phase 11 — Polish/a11y/mobile/dark mode
-- Phase 12 — Docker/deploy
+- Phase 12 — Docker/deploy ✅ (Dockerfile + docker-compose + Windows LAN guide)
 
 ## Theme switching epic (original + dark)
 
@@ -24,7 +24,7 @@ Updated: 2026-05-06
 
 ## Localization epic (English + Chinese)
 
-- i18n foundation: message dictionaries + loader + fallback
-- Language switcher UI + persisted locale preference
-- Localize core routes (`/login`, `/dashboard`, `/students`, dialogs, validation text)
-- Locale QA for EN/ZH date/time/number formatting and missing keys
+- i18n foundation: message dictionaries + loader + fallback ✅
+- Language switcher UI + persisted locale preference ✅
+- Localize core routes (`/login`, `/dashboard`, `/students`, dialogs, validation text) ✅
+- Locale QA for EN/ZH date/time/number formatting and missing keys ✅ (core routes + dashboard flows)

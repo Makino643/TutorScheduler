@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
+import { copy } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n-server";
 import { computeRemainingHours } from "@/lib/balance";
 import { subjectsToCommaString } from "@/lib/student-subjects";
 
@@ -13,6 +15,8 @@ function formatHours(n: number): string {
 }
 
 export default async function StudentsPage() {
+  const locale = await getServerLocale();
+  const studentsCopy = copy[locale].students;
   const students = await db.student.findMany({
     where: { archivedAt: null },
     orderBy: { createdAt: "desc" },
@@ -24,20 +28,20 @@ export default async function StudentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
-            Students
+            {studentsCopy.title}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Active students only. Archive removes a student from this list.
+            {studentsCopy.subtitle}
           </p>
         </div>
         <Button asChild>
-          <Link href="/students/new">Add student</Link>
+          <Link href="/students/new">{studentsCopy.addStudent}</Link>
         </Button>
       </div>
 
       {students.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground ring-1 ring-border/40">
-          No students yet. Use <strong>Add student</strong> to create one.
+          {studentsCopy.empty}
         </p>
       ) : (
         <ul className="mt-6 divide-y divide-border rounded-2xl border border-border bg-card ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
@@ -61,11 +65,11 @@ export default async function StudentsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-card-foreground">{st.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {subjectsToCommaString(st.subjects) || "No subjects yet"}
+                      {subjectsToCommaString(st.subjects) || studentsCopy.noSubjects}
                     </p>
                   </div>
                   <div className="text-right text-sm">
-                    <p className="text-muted-foreground">Balance (hours)</p>
+                    <p className="text-muted-foreground">{studentsCopy.balanceHours}</p>
                     <p className="font-medium tabular-nums text-card-foreground">
                       {formatHours(remaining)}
                     </p>

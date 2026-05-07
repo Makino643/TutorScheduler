@@ -46,6 +46,7 @@ export async function PATCH(
     anchorStart?: string;
     meetingUrl?: string | null;
     meetingCode?: string | null;
+    notes?: string | null;
     status?: SessionStatus;
   };
 
@@ -66,6 +67,7 @@ export async function PATCH(
   }
   const hasMeetingUrl = Object.prototype.hasOwnProperty.call(body, "meetingUrl");
   const hasMeetingCode = Object.prototype.hasOwnProperty.call(body, "meetingCode");
+  const hasNotes = Object.prototype.hasOwnProperty.call(body, "notes");
   const hasStatus = Object.prototype.hasOwnProperty.call(body, "status");
   const meetingUrl = hasMeetingUrl
     ? (body.meetingUrl ?? "").trim() || null
@@ -73,6 +75,7 @@ export async function PATCH(
   const meetingCode = hasMeetingCode
     ? (body.meetingCode ?? "").trim() || null
     : undefined;
+  const notes = hasNotes ? (body.notes ?? "").trim() || null : undefined;
   const status = hasStatus ? body.status : undefined;
 
   const scope = body.scope ?? "this";
@@ -130,6 +133,7 @@ export async function PATCH(
           endsAt: u.endsAt,
           meetingUrl,
           meetingCode,
+          notes,
           status,
           recurrenceId:
             scope === "this" && existing.recurrenceId ? null : undefined,
@@ -153,6 +157,7 @@ export async function PATCH(
     extendedProps: {
       studentId: updated.studentId,
       subject: updated.subject,
+      notes: updated.notes,
       status: updated.status,
       recurrenceId: updated.recurrenceId,
       blocksTime: true,

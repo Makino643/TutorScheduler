@@ -79,3 +79,21 @@ See [docs/QA_LOG.md](./docs/QA_LOG.md) and [phase-status.md](./phase-status.md) 
 **Fresh clone:** `npm install` → `Copy-Item .env.example .env` → `npx prisma migrate dev` → `npm run db:seed` → `npm run dev`.
 
 CI runs `npm ci`, `npx prisma migrate deploy`, lint, typecheck, and build (`.github/workflows/ci.yml`).
+
+## Docker (Windows LAN server, Mac client)
+
+Run TutorFlow on this Windows PC and access it from a MacBook on the same Wi-Fi.
+
+### Quick start
+
+```powershell
+Copy-Item .env.docker.example .env.docker
+# edit .env.docker and set NEXTAUTH_URL to your Windows LAN IP, e.g. http://192.168.1.35:3000
+docker compose up -d --build
+```
+
+Open from Mac browser:
+
+- `http://<WINDOWS_LAN_IP>:3000`
+
+Full guide: [docs/deploy/windows-lan-docker.md](./docs/deploy/windows-lan-docker.md)

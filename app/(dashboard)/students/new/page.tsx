@@ -4,16 +4,21 @@ import { createStudent } from "@/app/actions/students";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { copy } from "@/lib/i18n";
+import { getServerLocale } from "@/lib/i18n-server";
 
 type Props = {
   searchParams: Promise<{ error?: string }>;
 };
 
 export default async function NewStudentPage({ searchParams }: Props) {
+  const locale = await getServerLocale();
+  const studentsCopy = copy[locale].students;
+  const commonCopy = copy[locale].common;
   const { error } = await searchParams;
   const errorMessage =
     error === "Name+required"
-      ? "Name is required."
+      ? studentsCopy.nameRequired
       : error
         ? decodeURIComponent(error.replace(/\+/g, " "))
         : null;
@@ -22,10 +27,10 @@ export default async function NewStudentPage({ searchParams }: Props) {
     <div className="mx-auto max-w-lg">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-lg font-semibold tracking-tight text-card-foreground">
-          New student
+          {studentsCopy.newTitle}
         </h1>
         <Button variant="outline" asChild>
-          <Link href="/students">Back to list</Link>
+          <Link href="/students">{commonCopy.backToList}</Link>
         </Button>
       </div>
 
@@ -43,33 +48,33 @@ export default async function NewStudentPage({ searchParams }: Props) {
         className="grid gap-4 rounded-2xl border border-border bg-card p-6 ring-1 ring-border/40 shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
       >
         <div className="grid gap-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">{studentsCopy.name}</Label>
           <Input id="name" name="name" required autoComplete="name" />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="gradeLevel">Grade level (optional)</Label>
+          <Label htmlFor="gradeLevel">{studentsCopy.gradeLevelOptional}</Label>
           <Input id="gradeLevel" name="gradeLevel" />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="subjects">Subjects (comma-separated)</Label>
+          <Label htmlFor="subjects">{studentsCopy.subjectsComma}</Label>
           <Input
             id="subjects"
             name="subjects"
-            placeholder="Math, Physics"
+            placeholder={locale === "zh" ? "数学, 物理" : "Math, Physics"}
           />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="parentContact">Parent contact (optional)</Label>
+          <Label htmlFor="parentContact">{studentsCopy.parentContactOptional}</Label>
           <Input id="parentContact" name="parentContact" />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="notes">Notes (optional)</Label>
+          <Label htmlFor="notes">{studentsCopy.notesOptional}</Label>
           <Input id="notes" name="notes" />
         </div>
         <div className="flex flex-wrap gap-3 pt-2">
-          <Button type="submit">Create student</Button>
+          <Button type="submit">{studentsCopy.createStudent}</Button>
           <Button type="button" variant="outline" asChild>
-            <Link href="/students">Cancel</Link>
+            <Link href="/students">{commonCopy.cancel}</Link>
           </Button>
         </div>
       </form>

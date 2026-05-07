@@ -8,6 +8,7 @@ import multiMonthPlugin from "@fullcalendar/multimonth";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import type {
   DateSelectArg,
+  EventContentArg,
   EventChangeArg,
   EventInput,
 } from "@fullcalendar/core/index.js";
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { copy, type Locale } from "@/lib/i18n";
 
 type StudentOption = {
   id: string;
@@ -29,11 +31,13 @@ type StudentOption = {
 
 type Props = {
   students: StudentOption[];
+  locale: Locale;
 };
 
 type DraftBooking = {
   studentId: string;
   subject: string;
+  notes: string;
   startsAt: string;
   endsAt: string;
   recurrenceFreq: "NONE" | "WEEKLY";
@@ -48,6 +52,7 @@ type SessionMeetingDraft = {
   joinUrl: string | null;
   meetingUrl: string;
   meetingCode: string;
+  notes: string;
   startsAt: string;
   endsAt: string;
   status:
@@ -68,6 +73,7 @@ function fromRange(start: Date, end: Date, defaultStudentId: string): DraftBooki
   return {
     studentId: defaultStudentId,
     subject: "English",
+    notes: "",
     startsAt: toLocalInputValue(start),
     endsAt: toLocalInputValue(end),
     recurrenceFreq: "NONE",
@@ -103,7 +109,8 @@ function eventOverlapsRange(
   return eventStart < rangeEnd && eventEnd > rangeStart;
 }
 
-export function SessionCalendar({ students }: Props) {
+export function SessionCalendar({ students, locale }: Props) {
+  const c = copy[locale].dashboard;
   const focusStartTime = "06:00:00";
   const defaultScrollTime = "08:00:00";
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -187,6 +194,7 @@ export function SessionCalendar({ students }: Props) {
       const payload = {
         studentId: String(formData.get("studentId") ?? "").trim(),
         subject: String(formData.get("subject") ?? "").trim() || "English",
+        notes: String(formData.get("notes") ?? "").trim(),
         startsAt: String(formData.get("startsAt") ?? ""),
         endsAt: String(formData.get("endsAt") ?? ""),
         recurrence: {
@@ -323,6 +331,7 @@ export function SessionCalendar({ students }: Props) {
         scope: "this" as const,
         meetingUrl: String(formData.get("meetingUrl") ?? "").trim(),
         meetingCode: String(formData.get("meetingCode") ?? "").trim(),
+        notes: String(formData.get("notes") ?? "").trim(),
       };
       const res = await fetch(`/api/sessions/${selectedSession.id}`, {
         method: "PATCH",
@@ -393,10 +402,10 @@ export function SessionCalendar({ students }: Props) {
       refetchEvents();
       setError(
         scope === "this"
-          ? "Session archived."
+          ? c.sessionArchived
           : scope === "following"
-            ? "Following sessions archived."
-            : "Series archived.",
+            ? c.followingArchived
+            : c.seriesArchived,
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to archive session.");
@@ -504,7 +513,7 @@ export function SessionCalendar({ students }: Props) {
       <Dialog open={meetingOpen} onOpenChange={setMeetingOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Session meeting</DialogTitle>
+                <DialogTitle>{c.sessionMeeting}</DialogTitle>
               </DialogHeader>
               {selectedSession ? (
                 <div className="space-y-4 pt-2">
@@ -519,50 +528,58 @@ export function SessionCalendar({ students }: Props) {
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Join VooV
+                          {c.joinVoov}
                         </a>
                       </Button>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        No join link yet. Configure PMR in Settings or add override
-                        below.
+                        {c.noJoinLink}
                       </p>
                     )}
                     {selectedSession.joinUrl ? (
                       <Button type="button" variant="outline" onClick={copyJoinLink}>
-                        Copy link
+                        {c.copyLink}
                       </Button>
                     ) : null}
                   </div>
                   <form action={saveMeetingOverride} className="grid gap-3">
                     <div className="grid gap-2">
-                      <Label htmlFor="meetingUrl">Meeting URL override</Label>
+                      <Label htmlFor="meetingUrl">{c.meetingUrlOverride}</Label>
                       <Input
                         id="meetingUrl"
                         name="meetingUrl"
                         defaultValue={selectedSession.meetingUrl}
-                        placeholder="Leave empty to use PMR"
+                        placeholder={c.leaveEmptyUsePmr}
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="meetingCode">Meeting code override</Label>
+                      <Label htmlFor="meetingCode">{c.meetingCodeOverride}</Label>
                       <Input
                         id="meetingCode"
                         name="meetingCode"
                         defaultValue={selectedSession.meetingCode}
-                        placeholder="Optional"
+                        placeholder={c.optional}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="notes">{c.noteOptional}</Label>
+                      <Input
+                        id="notes"
+                        name="notes"
+                        defaultValue={selectedSession.notes}
+                        placeholder={c.notePlaceholder}
                       />
                     </div>
                     <Button type="submit" disabled={savingMeeting}>
-                      {savingMeeting ? "Saving..." : "Save override"}
+                      {savingMeeting ? c.saving : c.saveOverride}
                     </Button>
                   </form>
                   <div className="grid gap-2 rounded-md border border-border p-3">
                     <p className="text-sm font-medium text-card-foreground">
-                      Session lifecycle
+                      {c.lifecycle}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Current status: {selectedSession.status}
+                      {c.currentStatus.replace("{status}", selectedSession.status)}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       <Button
@@ -575,7 +592,7 @@ export function SessionCalendar({ students }: Props) {
                         onClick={() => updateSessionStatus("SCHEDULED")}
                         disabled={savingMeeting}
                       >
-                        Scheduled
+                        {c.scheduled}
                       </Button>
                       <Button
                         type="button"
@@ -587,7 +604,7 @@ export function SessionCalendar({ students }: Props) {
                         onClick={() => updateSessionStatus("COMPLETED")}
                         disabled={savingMeeting}
                       >
-                        Completed
+                        {c.completed}
                       </Button>
                       <Button
                         type="button"
@@ -599,7 +616,7 @@ export function SessionCalendar({ students }: Props) {
                         onClick={() => updateSessionStatus("CANCELLED_BY_TUTOR")}
                         disabled={savingMeeting}
                       >
-                        Cancelled by tutor
+                        {c.cancelledByTutor}
                       </Button>
                       <Button
                         type="button"
@@ -611,7 +628,7 @@ export function SessionCalendar({ students }: Props) {
                         onClick={() => updateSessionStatus("CANCELLED_BY_STUDENT")}
                         disabled={savingMeeting}
                       >
-                        Cancelled by student
+                        {c.cancelledByStudent}
                       </Button>
                       <Button
                         type="button"
@@ -623,7 +640,7 @@ export function SessionCalendar({ students }: Props) {
                         onClick={() => updateSessionStatus("NO_SHOW")}
                         disabled={savingMeeting}
                       >
-                        No-show
+                        {c.noShow}
                       </Button>
                     </div>
                     <div className="pt-2">
@@ -633,7 +650,7 @@ export function SessionCalendar({ students }: Props) {
                         onClick={() => archiveSession("this")}
                         disabled={savingMeeting}
                       >
-                        Archive this session
+                        {c.archiveThis}
                       </Button>
                       {selectedSession.recurrenceId ? (
                         <div className="mt-2 flex flex-wrap gap-2">
@@ -643,7 +660,7 @@ export function SessionCalendar({ students }: Props) {
                             onClick={() => archiveSession("following")}
                             disabled={savingMeeting}
                           >
-                            Archive following
+                            {c.archiveFollowing}
                           </Button>
                           <Button
                             type="button"
@@ -651,7 +668,7 @@ export function SessionCalendar({ students }: Props) {
                             onClick={() => archiveSession("all")}
                             disabled={savingMeeting}
                           >
-                            Archive all in series
+                            {c.archiveAllSeries}
                           </Button>
                         </div>
                       ) : null}
@@ -664,11 +681,11 @@ export function SessionCalendar({ students }: Props) {
           <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Book Session</DialogTitle>
+              <DialogTitle>{c.bookSessionDialog}</DialogTitle>
             </DialogHeader>
             <form action={handleCreate} className="grid gap-4 pt-2">
               <div className="grid gap-2">
-                <Label htmlFor="studentId">Student</Label>
+                <Label htmlFor="studentId">{c.student}</Label>
                 <select
                   id="studentId"
                   name="studentId"
@@ -687,7 +704,7 @@ export function SessionCalendar({ students }: Props) {
                 </select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="subject">Subject</Label>
+                <Label htmlFor="subject">{c.subject}</Label>
                 <Input
                   id="subject"
                   name="subject"
@@ -695,12 +712,24 @@ export function SessionCalendar({ students }: Props) {
                   onChange={(e) =>
                     setDraft((prev) => ({ ...prev, subject: e.target.value }))
                   }
-                  placeholder="Math"
+                  placeholder={c.mathPlaceholder}
                   required
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="startsAt">Start</Label>
+                <Label htmlFor="notes">{c.noteOptional}</Label>
+                <Input
+                  id="notes"
+                  name="notes"
+                  value={draft.notes}
+                  onChange={(e) =>
+                    setDraft((prev) => ({ ...prev, notes: e.target.value }))
+                  }
+                  placeholder={c.notePlaceholder}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="startsAt">{c.start}</Label>
                 <Input
                   id="startsAt"
                   name="startsAt"
@@ -713,7 +742,7 @@ export function SessionCalendar({ students }: Props) {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="endsAt">End</Label>
+                <Label htmlFor="endsAt">{c.end}</Label>
                 <Input
                   id="endsAt"
                   name="endsAt"
@@ -726,7 +755,7 @@ export function SessionCalendar({ students }: Props) {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="recurrenceFreq">Recurrence</Label>
+                <Label htmlFor="recurrenceFreq">{c.recurrence}</Label>
                 <select
                   id="recurrenceFreq"
                   name="recurrenceFreq"
@@ -739,14 +768,14 @@ export function SessionCalendar({ students }: Props) {
                     }))
                   }
                 >
-                  <option value="NONE">Does not repeat</option>
-                  <option value="WEEKLY">Weekly</option>
+                  <option value="NONE">{c.doesNotRepeat}</option>
+                  <option value="WEEKLY">{c.weekly}</option>
                 </select>
               </div>
               {draft.recurrenceFreq === "WEEKLY" ? (
                 <>
                   <div className="grid gap-2">
-                    <Label htmlFor="recurrenceEndMode">Repeat ends by</Label>
+                    <Label htmlFor="recurrenceEndMode">{c.repeatEndsBy}</Label>
                     <select
                       id="recurrenceEndMode"
                       name="recurrenceEndMode"
@@ -759,13 +788,13 @@ export function SessionCalendar({ students }: Props) {
                         }))
                       }
                     >
-                      <option value="COUNT">Occurrences</option>
-                      <option value="UNTIL">Until date</option>
+                      <option value="COUNT">{c.occurrences}</option>
+                      <option value="UNTIL">{c.untilDate}</option>
                     </select>
                   </div>
                   {draft.recurrenceEndMode === "COUNT" ? (
                     <div className="grid gap-2">
-                      <Label htmlFor="recurrenceCount">Occurrences</Label>
+                      <Label htmlFor="recurrenceCount">{c.occurrences}</Label>
                       <Input
                         id="recurrenceCount"
                         name="recurrenceCount"
@@ -783,7 +812,7 @@ export function SessionCalendar({ students }: Props) {
                     </div>
                   ) : (
                     <div className="grid gap-2">
-                      <Label htmlFor="recurrenceUntil">Until</Label>
+                      <Label htmlFor="recurrenceUntil">{c.until}</Label>
                       <Input
                         id="recurrenceUntil"
                         name="recurrenceUntil"
@@ -807,7 +836,7 @@ export function SessionCalendar({ students }: Props) {
                 </>
               )}
               <Button type="submit" disabled={saving || students.length === 0}>
-                {saving ? "Saving..." : "Save session"}
+                {saving ? c.saving : c.saveSession}
               </Button>
             </form>
           </DialogContent>
@@ -831,7 +860,7 @@ export function SessionCalendar({ students }: Props) {
             className="ml-2 font-semibold underline underline-offset-2"
             onClick={() => setShowEarlyHours(true)}
           >
-            Expand early hours
+            {c.expandEarlyInline}
           </button>
         </div>
       ) : null}
@@ -848,6 +877,7 @@ export function SessionCalendar({ students }: Props) {
           ]}
           initialView={persistedView}
           initialDate={initialDate}
+          firstDay={1}
           selectable={!isMobile}
           editable={!isMobile}
           eventResizableFromStart
@@ -864,27 +894,27 @@ export function SessionCalendar({ students }: Props) {
           }}
           customButtons={{
             bookSession: {
-              text: "Book session",
+              text: c.bookSession,
               click: () => {
                 if (isMobile) {
-                  setError("Booking is disabled on mobile view.");
+                  setError(c.bookingDisabledMobile);
                   return;
                 }
                 openBlankDialog();
               },
             },
             toggleEarly: {
-              text: showEarlyHours ? "Shrink early" : "Expand early",
+              text: showEarlyHours ? c.shrinkEarly : c.expandEarly,
               click: () => {
                 setShowEarlyHours((prev) => !prev);
               },
             },
           }}
           buttonText={{
-            timeGridDay: "Day",
-            timeGridWeek: "Week",
-            dayGridMonth: "Month",
-            multiMonthYear: "Year",
+            timeGridDay: c.day,
+            timeGridWeek: c.week,
+            dayGridMonth: c.month,
+            multiMonthYear: c.year,
           }}
           titleFormat={{
             year: "numeric",
@@ -894,6 +924,36 @@ export function SessionCalendar({ students }: Props) {
           selectMirror
           select={handleSelect}
           events={apiProvider}
+          eventContent={(arg: EventContentArg) => {
+            const viewType = arg.view.type;
+            const showNote = viewType === "timeGridDay" || viewType === "timeGridWeek";
+            const notes =
+              (arg.event.extendedProps as Record<string, unknown>).notes as
+                | string
+                | undefined;
+            return (
+              <div className="fc-note-wrap">
+                <div>
+                  {arg.timeText ? `${arg.timeText} ` : ""}
+                  {arg.event.title}
+                  {showNote && notes ? (
+                    <span
+                      className="fc-note-icon"
+                      title={notes}
+                      aria-label={notes}
+                    >
+                      📝
+                    </span>
+                  ) : null}
+                </div>
+                {showNote && notes ? (
+                  <div className="fc-note-text" title={notes}>
+                    {notes}
+                  </div>
+                ) : null}
+              </div>
+            );
+          }}
           eventClassNames={(arg) => {
             const status = (arg.event.extendedProps as Record<string, unknown>)
               .status;
@@ -911,6 +971,7 @@ export function SessionCalendar({ students }: Props) {
               joinUrl: (ext.joinUrl as string | null | undefined) ?? null,
               meetingUrl: (ext.meetingUrl as string | null | undefined) ?? "",
               meetingCode: (ext.meetingCode as string | null | undefined) ?? "",
+              notes: (ext.notes as string | null | undefined) ?? "",
               startsAt: arg.event.start?.toISOString() ?? "",
               endsAt: arg.event.end?.toISOString() ?? "",
               status:
