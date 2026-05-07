@@ -1,6 +1,8 @@
 "use client";
 
 import { Languages } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 
 import { type Locale, setLocaleCookieDocument } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -12,6 +14,8 @@ type Props = {
 };
 
 export function LanguageToggle({ locale, variant = "ghost", className }: Props) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const next: Locale = locale === "en" ? "zh" : "en";
   const label = locale === "en" ? "EN" : "\u4E2D";
   const nextLabel = next === "en" ? "English" : "\u4E2D\u6587";
@@ -19,9 +23,12 @@ export function LanguageToggle({ locale, variant = "ghost", className }: Props) 
   return (
     <button
       type="button"
+      disabled={isPending}
       onClick={() => {
         setLocaleCookieDocument(next);
-        window.location.reload();
+        startTransition(() => {
+          router.refresh();
+        });
       }}
       aria-label={`Switch language to ${nextLabel}`}
       title={`Switch language to ${nextLabel}`}

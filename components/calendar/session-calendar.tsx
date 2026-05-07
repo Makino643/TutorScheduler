@@ -183,8 +183,48 @@ export function SessionCalendar({ students, locale }: Props) {
     const api = calendarRef.current?.getApi();
     api?.refetchEvents();
   };
-  const invalidateEventsCache = () => {
-    eventsCacheRef.current.clear();
+
+  const upsertEventInCaches = (event: EventInput) => {
+    const id = event.id;
+    if (!id) return;
+    for (const [key, events] of eventsCacheRef.current.entries()) {
+      const [rangeStart, rangeEnd] = key.split("|");
+      if (!rangeStart || !rangeEnd) continue;
+      const overlaps = eventOverlapsRange(
+        { start: event.start, end: event.end },
+        rangeStart,
+        rangeEnd,
+      );
+      const filtered = events.filter((e) => e.id !== id);
+      if (overlaps) filtered.push(event);
+      eventsCacheRef.current.set(key, filtered);
+    }
+  };
+
+  const removeEventsFromCaches = (predicate: (event: EventInput) => boolean) => {
+    for (const [key, events] of eventsCacheRef.current.entries()) {
+      eventsCacheRef.current.set(
+        key,
+        events.filter((e) => !predicate(e)),
+      );
+    }
+  };
+
+  const refreshActiveRangeAwait = async () => {
+    const api = calendarRef.current?.getApi();
+    if (!api) return;
+    const startStr = api.view.activeStart.toISOString();
+    const endStr = api.view.activeEnd.toISOString();
+    try {
+      const events = await fetchEventsRange(startStr, endStr, true);
+      eventsCacheRef.current.clear();
+      eventsCacheRef.current.set(`${startStr}|${endStr}`, events);
+      setHiddenEarlyCount(countEarlySessions(events));
+      api.refetchEvents();
+      void prefetchAdjacentRanges(startStr, endStr);
+    } catch {
+      // Best-effort; keep existing painted events on failure.
+    }
   };
 
   const handleCreate = async (formData: FormData) => {
@@ -244,12 +284,13 @@ export function SessionCalendar({ students, locale }: Props) {
         if (inserted) {
           api.refetchEvents();
         } else {
-          invalidateEventsCache();
-          refetchEvents();
+          // New event sits outside any cached range (e.g., far-future date).
+          // Await a fresh fetch for the active view before refetching to
+          // avoid a blank flash from clearing the cache pre-emptively.
+          await refreshActiveRangeAwait();
         }
       } else {
-        invalidateEventsCache();
-        refetchEvents();
+        await refreshActiveRangeAwait();
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to create session.");
@@ -298,8 +339,15 @@ export function SessionCalendar({ students, locale }: Props) {
         }),
       });
       await throwIfNotOk(res);
-      invalidateEventsCache();
-      refetchEvents();
+      const updated = (await res.json()) as EventInput;
+      if (scope === "this") {
+        upsertEventInCaches(updated);
+        refetchEvents();
+      } else {
+        // Multiple sessions in the series shifted; refresh active range from
+        // server first so refetchEvents has fresh cache and never paints blank.
+        await refreshActiveRangeAwait();
+      }
     } catch (e) {
       arg.revert();
       setError(e instanceof Error ? e.message : "Unable to reschedule session.");
@@ -339,8 +387,9 @@ export function SessionCalendar({ students, locale }: Props) {
         body: JSON.stringify(payload),
       });
       await throwIfNotOk(res);
+      const updated = (await res.json()) as EventInput;
       setMeetingOpen(false);
-      invalidateEventsCache();
+      upsertEventInCaches(updated);
       refetchEvents();
     } catch (e) {
       setError(
@@ -366,9 +415,10 @@ export function SessionCalendar({ students, locale }: Props) {
         }),
       });
       await throwIfNotOk(res);
+      const updated = (await res.json()) as EventInput;
       setSelectedSession((prev) => (prev ? { ...prev, status: nextStatus } : prev));
       setError(`Session marked ${nextStatus}.`);
-      invalidateEventsCache();
+      upsertEventInCaches(updated);
       refetchEvents();
     } catch (e) {
       setError(
@@ -391,15 +441,39 @@ export function SessionCalendar({ students, locale }: Props) {
     setSavingMeeting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/sessions/${selectedSession.id}`, {
+      const archivedId = selectedSession.id;
+      const archivedRecurrenceId = selectedSession.recurrenceId;
+      const archivedStartIso = selectedSession.startsAt;
+      const res = await fetch(`/api/sessions/${archivedId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scope }),
       });
       await throwIfNotOk(res);
       setMeetingOpen(false);
-      invalidateEventsCache();
-      refetchEvents();
+      if (scope === "this" || !archivedRecurrenceId) {
+        removeEventsFromCaches((e) => e.id === archivedId);
+        refetchEvents();
+      } else if (scope === "all") {
+        removeEventsFromCaches(
+          (e) =>
+            (e.extendedProps as Record<string, unknown> | undefined)
+              ?.recurrenceId === archivedRecurrenceId,
+        );
+        refetchEvents();
+      } else {
+        const archivedStartMs = new Date(archivedStartIso).getTime();
+        removeEventsFromCaches((e) => {
+          const ext = e.extendedProps as Record<string, unknown> | undefined;
+          if (ext?.recurrenceId !== archivedRecurrenceId) return false;
+          const startMs =
+            e.start instanceof Date
+              ? e.start.getTime()
+              : new Date(e.start as string).getTime();
+          return Number.isFinite(startMs) && startMs >= archivedStartMs;
+        });
+        refetchEvents();
+      }
       setError(
         scope === "this"
           ? c.sessionArchived
