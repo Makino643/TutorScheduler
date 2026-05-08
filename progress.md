@@ -112,3 +112,6 @@ Format: `ISO date` — what changed — validation snippet.
   - `npm run lint` passed.
   - `npx tsc --noEmit` passed.
   - `npm run desktop:pack:fresh` produced installer + zip + `win-unpacked` successfully; packaged tree contains `app.asar.unpacked/.next/standalone/server.js`, Prisma engine `.dll` unpacked, and seeded `dev.db` under `resources/prisma/`.
+- Planning cleanup:
+  - Deleted `TODOS.md` per request since all items were complete.
+  - Consolidated ongoing task tracking into `task_plan.md`, `progress.md`, and `findings.md`.

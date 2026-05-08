@@ -28,6 +28,7 @@
 - **npm only** for installs/CI (no pnpm lockfile).
 - **Credentials + JWT** (no Prisma adapter tables).
 - **Edge middleware:** credential verification lives in `[lib/auth-credentials.ts](./lib/auth-credentials.ts)` and is loaded only from `authorize` via `import()` so middleware does not bundle Prisma/bcrypt.
+- **Task tracking source of truth:** `task_plan.md` + `progress.md` + `findings.md`; standalone `TODOS.md` retired.
 
 ## Errors encountered
 
@@ -47,7 +48,7 @@
 
 ## Next actions
 
-1. Implement Electron runtime files and npm scripts in codebase.
-2. Configure and test macOS signing/notarization in CI.
-3. Add GitHub Release workflow for macOS first, then Windows.
+1. Add GitHub Release workflow for macOS-first, then Windows artifacts.
+2. Configure and test macOS signing/notarization in CI (or finalize unsigned policy).
+3. Run final desktop QA pass (login locale, lifecycle balance refresh, status i18n, icon/menu).
 

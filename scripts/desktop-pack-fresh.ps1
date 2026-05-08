@@ -52,4 +52,16 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
+Write-Host "Stamping icon onto unpacked executable..."
+$iconPath = Join-Path $projectRoot "electron\\icon.ico"
+$exePath = Join-Path $projectRoot "$outputDir\\win-unpacked\\TutorFlow.exe"
+if ((Test-Path $iconPath) -and (Test-Path $exePath)) {
+  node ".\\scripts\\stamp-exe-icon.js" "$exePath" "$iconPath"
+  if ($LASTEXITCODE -ne 0) {
+    Write-Warning "rcedit icon stamping failed for $exePath"
+  }
+} else {
+  Write-Warning "Icon or executable missing; skipped icon stamping."
+}
+
 Write-Host "Done. Artifacts are in '$outputDir'."

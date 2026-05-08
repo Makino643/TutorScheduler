@@ -71,11 +71,16 @@
       "hardenedRuntime": false
     },
     "win": {
+      "icon": "electron/icon.ico",
       "signAndEditExecutable": false,
       "target": [
         "nsis",
         "zip"
       ]
+    },
+    "nsis": {
+      "installerIcon": "electron/icon.ico",
+      "uninstallerIcon": "electron/icon.ico"
     }
   },
   "dependencies": {
@@ -115,6 +120,7 @@
     "eslint-config-next": "^15.5.4",
     "postcss": "^8.5.6",
     "prisma": "^6.19.0",
+    "rcedit": "^5.0.2",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3",

@@ -146,6 +146,7 @@ async function waitForServer(url, timeoutMs = 30000) {
 }
 
 function showSplash() {
+  const windowIcon = path.join(__dirname, "icon.png");
   mainWindow = new BrowserWindow({
     width: 1360,
     height: 900,
@@ -154,6 +155,7 @@ function showSplash() {
     backgroundColor: "#0b0b10",
     show: true,
     autoHideMenuBar: true,
+    icon: windowIcon,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
