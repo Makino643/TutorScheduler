@@ -9,6 +9,10 @@ out
 dist
 build
 
+# desktop packaging artifacts
+release
+release-local-*
+
 # env
 .env
 .env.docker

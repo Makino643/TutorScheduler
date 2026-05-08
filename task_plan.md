@@ -19,6 +19,7 @@
 | 11    | Polish + a11y + responsive | **complete** | Dark mode toggle/persistence, reduced-motion CSS, mobile-safe calendar interactions, focus-safe dialog flows                         |
 | 12    | Docker + deploy   | **complete** | Dockerfile + docker-compose + Windows LAN deployment runbook (`docs/deploy/windows-lan-docker.md`)                                  |
 | i18n  | EN/ZH localization | **complete** | Locale foundation (`lib/i18n.ts`), language switcher, core routes/components localized                                                |
+| 13    | Electron desktop + GitHub Releases | **in_progress** | Standalone-based packaging is now workable on Windows (splash + writable DB + log file). Runbook in `docs/deploy/electron-github-release.md`. Next: GitHub Actions release workflow and macOS first run. |
 | 12+   | …                 | pending      | See DESIGN.md                                                                                                                         |
 
 
@@ -41,11 +42,12 @@
 | `session-catchup.py` file missing in current host layout                         | 1       | Manually synced planning files (`task_plan/progress/findings`)                                  |
 | Prisma migration drift after prior feature rollback                              | 1       | Re-synced by avoiding new schema migration and implementing Phase 10 with env token + APIs      |
 | None-blocking polish checks for lighthouse/playwright not available in-session   | 1       | Completed phase using automated gate + manual verification checklist updates                      |
+| `session-catchup.py` still unavailable (`.claude/skills/...` path not found)    | 1       | Continued with manual planning sync and direct repo inspection                                    |
 
 
 ## Next actions
 
-1. Theme switching polish QA across all pages and edge components.
-2. Locale QA expansion for date/time/number formatting edge cases.
-3. Optional: settings-level locale/theme preferences sync to user profile (server-side).
+1. Implement Electron runtime files and npm scripts in codebase.
+2. Configure and test macOS signing/notarization in CI.
+3. Add GitHub Release workflow for macOS first, then Windows.
 

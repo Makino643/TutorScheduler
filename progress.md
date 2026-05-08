@@ -67,3 +67,48 @@ Format: `ISO date` — what changed — validation snippet.
   - Integrated locale in layout hydration + dashboard shell + mobile bar + login.
   - Localized core routes/components: `/login`, `/dashboard`, `/students`, `/students/new`, `/students/[id]`, `/settings`, dashboard widgets, calendar interaction labels.
 - **Validation:** `npm run lint` and `npx tsc --noEmit` passed after i18n + deploy changes.
+
+## 2026-05-08
+
+- Added desktop distribution runbook for Electron + GitHub Releases:
+  - `docs/deploy/electron-github-release.md`
+- Runbook includes:
+  - Electron architecture for Next.js runtime (`next start` inside Electron)
+  - `electron-builder` configuration template
+  - macOS signing + notarization secret requirements
+  - GitHub Actions release workflow (macOS-first, Windows secondary)
+  - step-by-step version/tag/release execution flow
+- Planning sync:
+  - Added Phase 13 entry (`Electron desktop + GitHub Releases`) in `task_plan.md` as `in_progress`.
+  - `session-catchup.py` remained unavailable on host path; context synced manually per current repository state.
+- Implemented Electron release preparation in codebase:
+  - Added `electron/main.js` and `electron/preload.js`.
+  - Updated `package.json` with Electron entrypoint, desktop scripts (`desktop:dev`, `desktop:build`, `desktop:pack`, `desktop:release`), and `electron-builder` config.
+  - Configured unsigned mac build (`build.mac.identity = null`, `hardenedRuntime = false`) and mac/win targets.
+  - Installed dependencies: `electron`, `electron-builder`, `wait-on`, `concurrently`, `cross-env`.
+- Validation after setup:
+  - `npm run lint` passed.
+  - `npx tsc --noEmit` passed.
+- Reworked Electron packaging into a workable build (Phase 13):
+  - Switched to Next.js standalone output (`output: "standalone"`) with explicit Prisma tracing in `next.config.ts`.
+  - Added `scripts/prepare-standalone.js` that, after `next build`, populates `.next/standalone/` with:
+    - `public/`
+    - `.next/static/`
+    - `prisma/schema.prisma`, `prisma/migrations/`, seeded `prisma/dev.db`
+    - Defensive copy of `node_modules/.prisma/client` and `node_modules/@prisma/{client,engines}` if Next tracing missed them.
+  - Rewrote `electron/main.js`:
+    - Splash window shown immediately so the app is never visually unresponsive.
+    - Picks a free port; spawns the standalone `server.js` via Electron-as-Node (`ELECTRON_RUN_AS_NODE=1`).
+    - Sets `DATABASE_URL` to a writable copy of `dev.db` under `userData/data/`.
+    - Persists a stable `AUTH_SECRET` in `userData/auth-secret`.
+    - Streams server stdout/stderr into `userData/logs/main.log`.
+    - On startup failure, renders a diagnostic HTML page in the same window that includes the log path.
+  - Updated `electron-builder` config:
+    - `files`: `electron/**/*`, `.next/standalone/**/*`, `.next/static/**/*`, `public/**/*`, `package.json`.
+    - `extraResources`: ships `prisma/schema.prisma`, migrations, and seeded `dev.db` to `resources/prisma/`.
+    - `asarUnpack`: `**/node_modules/.prisma/**/*`, `**/node_modules/@prisma/**/*`, `**/.next/standalone/prisma/**/*` (so Prisma engine `.dll` is on disk and writable assets aren't trapped in asar).
+  - Root causes of the prior three failed builds documented (recursive exec, wrong cwd for `next start`, asar-trapped DB).
+- Validation after rework:
+  - `npm run lint` passed.
+  - `npx tsc --noEmit` passed.
+  - `npm run desktop:pack:fresh` produced installer + zip + `win-unpacked` successfully; packaged tree contains `app.asar.unpacked/.next/standalone/server.js`, Prisma engine `.dll` unpacked, and seeded `dev.db` under `resources/prisma/`.

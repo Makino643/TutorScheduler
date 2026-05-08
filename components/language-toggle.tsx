@@ -1,7 +1,7 @@
 "use client";
 
 import { Languages } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
 
 import { type Locale, setLocaleCookieDocument } from "@/lib/i18n";
@@ -15,21 +15,32 @@ type Props = {
 
 export function LanguageToggle({ locale, variant = "ghost", className }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
   const next: Locale = locale === "en" ? "zh" : "en";
   const label = locale === "en" ? "EN" : "\u4E2D";
   const nextLabel = next === "en" ? "English" : "\u4E2D\u6587";
 
+  const onToggle = () => {
+    setLocaleCookieDocument(next);
+    // The login page mounts NextAuth's signIn flow and pre-existing form
+    // state; a soft router.refresh() during an in-flight auth attempt can
+    // leave the form pointing at stale state. Always do a clean full
+    // reload on /login so the auth flow starts from a fresh document.
+    if (pathname === "/login") {
+      window.location.reload();
+      return;
+    }
+    startTransition(() => {
+      router.refresh();
+    });
+  };
+
   return (
     <button
       type="button"
       disabled={isPending}
-      onClick={() => {
-        setLocaleCookieDocument(next);
-        startTransition(() => {
-          router.refresh();
-        });
-      }}
+      onClick={onToggle}
       aria-label={`Switch language to ${nextLabel}`}
       title={`Switch language to ${nextLabel}`}
       className={cn(

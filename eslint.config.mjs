@@ -17,6 +17,9 @@ const eslintConfig = [
       "node_modules/**",
       "prisma/migrations/**",
       "next-env.d.ts",
+      "release/**",
+      "release-local-*/**",
+      "scripts/prepare-standalone.js",
     ],
   },
 ];

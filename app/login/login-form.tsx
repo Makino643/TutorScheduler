@@ -76,6 +76,12 @@ export function LoginForm({ locale }: Props) {
             type="email"
             autoComplete="email"
             required
+            lang="en"
+            dir="ltr"
+            inputMode="email"
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring focus-visible:ring-2"
           />
         </div>
@@ -92,6 +98,11 @@ export function LoginForm({ locale }: Props) {
             type="password"
             autoComplete="current-password"
             required
+            lang="en"
+            dir="ltr"
+            spellCheck={false}
+            autoCapitalize="off"
+            autoCorrect="off"
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none ring-ring focus-visible:ring-2"
           />
         </div>

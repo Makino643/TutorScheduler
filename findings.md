@@ -91,3 +91,24 @@
 - Reduced motion is handled globally with a `prefers-reduced-motion` media query that minimizes transitions/animations.
 - Mobile calendar policy is read-only/safe interactions by disabling create/edit gestures on small widths.
 
+## Electron packaging + GitHub Releases (macOS first)
+
+- For this Next.js + Prisma project, the reliable Electron approach is to run `next start` in-process (localhost) rather than static export.
+- Packaging with `electron-builder` must include:
+  - `.next`, `public`, `node_modules`, `prisma`, and Electron entry files.
+  - `asarUnpack` for Prisma engine/runtime directories (`node_modules/.prisma`, `node_modules/@prisma`) and Next runtime when needed.
+- macOS release quality depends on code signing + notarization:
+  - Required CI secrets include `CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`.
+- GitHub Actions tag-based release (`v*`) is the cleanest automation path:
+  - Build/publish macOS first, then append Windows artifacts to same release.
+
+## Electron + Next.js + Prisma: lessons from initial broken builds
+
+- **Spawning `process.execPath` in packaged Electron without `ELECTRON_RUN_AS_NODE=1`** re-executes the app binary, causing infinite window spawning. Always set `ELECTRON_RUN_AS_NODE=1` when running Node-style children.
+- **`next start` will not start if its `cwd` does not contain `.next/` and `package.json`.** When packaged, those are inside `app.asar`, not `app.asar.unpacked`. The fix is to switch to **Next standalone output** (`output: "standalone"`) and run `node server.js` from `.next/standalone/`. Standalone is self-contained and asar-friendly.
+- **SQLite DB cannot live inside `app.asar` (read-only).** Always copy the seeded DB to a writable path (`app.getPath("userData")`) on first launch and point `DATABASE_URL` to that copy.
+- **Prisma engine binaries (`.dll`/`.dylib`) must be unpacked from asar** (loaded via OS `dlopen`, not Node fs). Use `asarUnpack` patterns like `**/node_modules/.prisma/**/*` and `**/node_modules/@prisma/**/*`.
+- **Standalone trees do not include `public/` and `.next/static/` automatically.** A post-build script must copy them next to `server.js` (and optionally Prisma assets) so the standalone server can serve them.
+- **`AUTH_SECRET` must be stable** across launches in production or sessions invalidate every restart. Generate once and persist under `userData`.
+- **Run a splash window immediately and stream child logs to a file** under `userData/logs/`. Without this, any startup failure looks like “the app does nothing” to the user.
+

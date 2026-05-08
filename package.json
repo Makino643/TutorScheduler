@@ -2,10 +2,16 @@
   "name": "tutor-scheduler",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    "desktop:dev": "concurrently \"next dev -p 3989\" \"wait-on http://127.0.0.1:3989 && electron .\"",
+    "desktop:build": "next build && node scripts/prepare-standalone.js",
+    "desktop:pack": "npm run desktop:build && electron-builder --publish never",
+    "desktop:pack:fresh": "powershell -ExecutionPolicy Bypass -File ./scripts/desktop-pack-fresh.ps1",
+    "desktop:release": "npm run desktop:build && electron-builder --publish always",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
@@ -23,6 +29,54 @@
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
+  },
+  "build": {
+    "appId": "com.tutorflow.app",
+    "productName": "TutorFlow",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      ".next/standalone/**/*",
+      ".next/static/**/*",
+      "public/**/*",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "prisma",
+        "to": "prisma",
+        "filter": [
+          "schema.prisma",
+          "migrations/**/*",
+          "dev.db"
+        ]
+      }
+    ],
+    "asarUnpack": [
+      "**/node_modules/.prisma/**/*",
+      "**/node_modules/@prisma/**/*",
+      "**/.next/standalone/**/*",
+      "**/.next/static/**/*",
+      "**/public/**/*"
+    ],
+    "mac": {
+      "target": [
+        "zip",
+        "dmg"
+      ],
+      "identity": null,
+      "hardenedRuntime": false
+    },
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "nsis",
+        "zip"
+      ]
+    }
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.20",
@@ -53,6 +107,10 @@
     "@types/node": "^22.19.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^42.0.0",
+    "electron-builder": "^26.8.1",
     "eslint": "^9.39.1",
     "eslint-config-next": "^15.5.4",
     "postcss": "^8.5.6",
@@ -60,6 +118,7 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wait-on": "^9.0.5"
   }
 }

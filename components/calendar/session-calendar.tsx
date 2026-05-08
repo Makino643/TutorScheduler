@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { copy, type Locale } from "@/lib/i18n";
+import { copy, replaceTemplate, type Locale } from "@/lib/i18n";
 
 type StudentOption = {
   id: string;
@@ -111,6 +112,23 @@ function eventOverlapsRange(
 
 export function SessionCalendar({ students, locale }: Props) {
   const c = copy[locale].dashboard;
+  const router = useRouter();
+  const statusLabel = (status: SessionMeetingDraft["status"]): string => {
+    switch (status) {
+      case "SCHEDULED":
+        return c.scheduled;
+      case "COMPLETED":
+        return c.completed;
+      case "NO_SHOW":
+        return c.noShow;
+      case "CANCELLED_BY_TUTOR":
+        return c.cancelledByTutor;
+      case "CANCELLED_BY_STUDENT":
+        return c.cancelledByStudent;
+      default:
+        return status;
+    }
+  };
   const focusStartTime = "06:00:00";
   const defaultScrollTime = "08:00:00";
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -292,6 +310,7 @@ export function SessionCalendar({ students, locale }: Props) {
       } else {
         await refreshActiveRangeAwait();
       }
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to create session.");
     } finally {
@@ -348,6 +367,7 @@ export function SessionCalendar({ students, locale }: Props) {
         // server first so refetchEvents has fresh cache and never paints blank.
         await refreshActiveRangeAwait();
       }
+      router.refresh();
     } catch (e) {
       arg.revert();
       setError(e instanceof Error ? e.message : "Unable to reschedule session.");
@@ -365,7 +385,7 @@ export function SessionCalendar({ students, locale }: Props) {
   const copyJoinLink = async () => {
     if (!selectedSession?.joinUrl) return;
     await navigator.clipboard.writeText(selectedSession.joinUrl);
-    setError("Join link copied to clipboard.");
+    setError(c.joinLinkCopied);
   };
 
   const saveMeetingOverride = async (formData: FormData) => {
@@ -391,6 +411,7 @@ export function SessionCalendar({ students, locale }: Props) {
       setMeetingOpen(false);
       upsertEventInCaches(updated);
       refetchEvents();
+      router.refresh();
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Unable to update meeting override.",
@@ -417,9 +438,13 @@ export function SessionCalendar({ students, locale }: Props) {
       await throwIfNotOk(res);
       const updated = (await res.json()) as EventInput;
       setSelectedSession((prev) => (prev ? { ...prev, status: nextStatus } : prev));
-      setError(`Session marked ${nextStatus}.`);
+      setError(replaceTemplate(c.markedAs, { status: statusLabel(nextStatus) }));
       upsertEventInCaches(updated);
       refetchEvents();
+      // Server-rendered KPI/Students panel computes consumed/remaining hours.
+      // Refresh in the background so the right-side rail reflects the new
+      // balance without unmounting the calendar (no flicker).
+      router.refresh();
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Unable to update session status.",
@@ -481,6 +506,9 @@ export function SessionCalendar({ students, locale }: Props) {
             ? c.followingArchived
             : c.seriesArchived,
       );
+      // Archived sessions stop counting toward consumed hours; refresh the
+      // server-rendered rail so balances update immediately.
+      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unable to archive session.");
     } finally {
