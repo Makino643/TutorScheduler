@@ -20,6 +20,7 @@ const eslintConfig = [
       "release/**",
       "release-local-*/**",
       "scripts/prepare-standalone.js",
+      "scripts/ensure-desktop-db.js",
     ],
   },
 ];

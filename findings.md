@@ -111,4 +111,5 @@
 - **Standalone trees do not include `public/` and `.next/static/` automatically.** A post-build script must copy them next to `server.js` (and optionally Prisma assets) so the standalone server can serve them.
 - **`AUTH_SECRET` must be stable** across launches in production or sessions invalidate every restart. Generate once and persist under `userData`.
 - **Run a splash window immediately and stream child logs to a file** under `userData/logs/`. Without this, any startup failure looks like “the app does nothing” to the user.
+- **Packaged desktop login failures ("invalid password")** often mean the bundled SQLite had **no seeded tutor**: `prisma/dev.db` is usually gitignored, so CI builds shipped an empty DB. Fix: run `prisma migrate deploy` + `prisma db seed` before `prepare-standalone` (see `scripts/ensure-desktop-db.js`, chained in `npm run desktop:build`). Seed credentials come from `.env` / `.env.example` (`SEED_TUTOR_*`).
 

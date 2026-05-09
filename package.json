@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "desktop:dev": "concurrently \"next dev -p 3989\" \"wait-on http://127.0.0.1:3989 && electron .\"",
-    "desktop:build": "next build && node scripts/prepare-standalone.js",
+    "desktop:build": "next build && node scripts/ensure-desktop-db.js && node scripts/prepare-standalone.js",
     "desktop:pack": "npm run desktop:build && electron-builder --publish never",
     "desktop:pack:fresh": "powershell -ExecutionPolicy Bypass -File ./scripts/desktop-pack-fresh.ps1",
     "desktop:release": "npm run desktop:build && electron-builder --publish always",

@@ -33,14 +33,19 @@ jobs:
       - name: Package unsigned mac artifacts
         run: npx electron-builder --mac --publish never
 
+      - name: Show packaged files
+        run: |
+          echo "Release directory contents:"
+          ls -la release || true
+          echo "Matching mac artifacts:"
+          ls -la release/*.dmg release/*-mac.zip release/*.blockmap || true
+
       - name: Upload macOS artifacts (workflow run)
         uses: actions/upload-artifact@v4
         with:
-          name: macos-unsigned-build
+          name: macos-unsigned-build-${{ github.run_number }}
           path: |
-            release/*.dmg
-            release/*-mac.zip
-            release/*.blockmap
+            release/**
           if-no-files-found: error
 
       - name: Attach artifacts to GitHub Release (tag only)
