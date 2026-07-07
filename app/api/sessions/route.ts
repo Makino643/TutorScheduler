@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { resolveMeetingForSession } from "@/lib/meeting-provider";
-import { expandWeeklyStarts, expandWeeklyStartsUntil } from "@/lib/recurrence";
+import { expandDailyStarts, expandDailyStartsUntil, expandWeeklyStarts, expandWeeklyStartsUntil } from "@/lib/recurrence";
 
 function isCancelled(status: SessionStatus): boolean {
   return status === "CANCELLED_BY_STUDENT" || status === "CANCELLED_BY_TUTOR";
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
     endsAt?: string;
     notes?: string;
     recurrence?: {
-      freq?: "NONE" | "WEEKLY";
+      freq?: "NONE" | "WEEKLY" | "DAILY";
       count?: number;
       until?: string;
       endMode?: "COUNT" | "UNTIL";
@@ -147,7 +147,11 @@ export async function POST(req: Request) {
       ? recurrenceEndMode === "UNTIL" && recurrenceUntil
         ? expandWeeklyStartsUntil({ startsAt, until: recurrenceUntil })
         : expandWeeklyStarts({ startsAt, count: recurrenceCount })
-      : [startsAt];
+      : recurrenceFreq === "DAILY"
+        ? recurrenceEndMode === "UNTIL" && recurrenceUntil
+          ? expandDailyStartsUntil({ startsAt, until: recurrenceUntil })
+          : expandDailyStarts({ startsAt, count: recurrenceCount })
+        : [startsAt];
 
   for (const startCandidate of starts) {
     const endCandidate = new Date(startCandidate.getTime() + durationMs);
@@ -160,7 +164,9 @@ export async function POST(req: Request) {
   }
 
   const recurrenceId =
-    recurrenceFreq === "WEEKLY" && starts.length > 1 ? crypto.randomUUID() : null;
+    (recurrenceFreq === "WEEKLY" || recurrenceFreq === "DAILY") && starts.length > 1
+      ? crypto.randomUUID()
+      : null;
   const created = await db.$transaction(
     starts.map((startCandidate, i) =>
       db.session.create({
@@ -174,8 +180,8 @@ export async function POST(req: Request) {
           rrule:
             i === 0 && recurrenceId
               ? recurrenceEndMode === "UNTIL" && recurrenceUntil
-                ? `FREQ=WEEKLY;UNTIL=${recurrenceUntil.toISOString()}`
-                : `FREQ=WEEKLY;COUNT=${starts.length}`
+                ? `FREQ=${recurrenceFreq};UNTIL=${recurrenceUntil.toISOString()}`
+                : `FREQ=${recurrenceFreq};COUNT=${starts.length}`
               : null,
         },
       }),

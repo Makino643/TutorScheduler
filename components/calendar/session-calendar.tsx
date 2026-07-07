@@ -41,7 +41,7 @@ type DraftBooking = {
   notes: string;
   startsAt: string;
   endsAt: string;
-  recurrenceFreq: "NONE" | "WEEKLY";
+  recurrenceFreq: "NONE" | "WEEKLY" | "DAILY";
   recurrenceEndMode: "COUNT" | "UNTIL";
   recurrenceCount: string;
   recurrenceUntil: string;
@@ -891,15 +891,16 @@ export function SessionCalendar({ students, locale }: Props) {
                   onChange={(e) =>
                     setDraft((prev) => ({
                       ...prev,
-                      recurrenceFreq: e.target.value as "NONE" | "WEEKLY",
+                      recurrenceFreq: e.target.value as "NONE" | "WEEKLY" | "DAILY",
                     }))
                   }
                 >
                   <option value="NONE">{c.doesNotRepeat}</option>
+                  <option value="DAILY">{c.daily}</option>
                   <option value="WEEKLY">{c.weekly}</option>
                 </select>
               </div>
-              {draft.recurrenceFreq === "WEEKLY" ? (
+              {draft.recurrenceFreq !== "NONE" ? (
                 <>
                   <div className="grid gap-2">
                     <Label htmlFor="recurrenceEndMode">{c.repeatEndsBy}</Label>
@@ -927,7 +928,7 @@ export function SessionCalendar({ students, locale }: Props) {
                         name="recurrenceCount"
                         type="number"
                         min="2"
-                        max="52"
+                        max={draft.recurrenceFreq === "DAILY" ? "365" : "52"}
                         value={draft.recurrenceCount}
                         onChange={(e) =>
                           setDraft((prev) => ({
