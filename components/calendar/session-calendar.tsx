@@ -150,6 +150,7 @@ export function SessionCalendar({ students, locale }: Props) {
   const [isMobile, setIsMobile] = useState(false);
   const [showEarlyHours, setShowEarlyHours] = useState(false);
   const [hiddenEarlyCount, setHiddenEarlyCount] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [calendarReady, setCalendarReady] = useState(false);
   const [persistedView, setPersistedView] = useState<string>("timeGridWeek");
@@ -228,9 +229,12 @@ export function SessionCalendar({ students, locale }: Props) {
     }
   };
 
-  const refreshActiveRangeAwait = async () => {
+  const refreshActiveRangeAwait = async (throwOnError = false) => {
     const api = calendarRef.current?.getApi();
-    if (!api) return;
+    if (!api) {
+      if (throwOnError) throw new Error("Calendar is not ready.");
+      return;
+    }
     const startStr = api.view.activeStart.toISOString();
     const endStr = api.view.activeEnd.toISOString();
     try {
@@ -240,8 +244,29 @@ export function SessionCalendar({ students, locale }: Props) {
       setHiddenEarlyCount(countEarlySessions(events));
       api.refetchEvents();
       void prefetchAdjacentRanges(startStr, endStr);
-    } catch {
+    } catch (err) {
+      if (throwOnError) throw err;
       // Best-effort; keep existing painted events on failure.
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setError(null);
+    try {
+      eventsCacheRef.current.clear();
+      try {
+        window.sessionStorage.removeItem("dashboard-calendar-cache");
+      } catch {
+        // ignore storage errors
+      }
+      await refreshActiveRangeAwait(true);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Unable to refresh calendar.");
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -992,9 +1017,15 @@ export function SessionCalendar({ students, locale }: Props) {
             left: "prev,next today",
             center: "title",
             right:
-              "bookSession,toggleEarly timeGridDay,timeGridWeek,dayGridMonth,multiMonthYear",
+              "refresh,bookSession,toggleEarly timeGridDay,timeGridWeek,dayGridMonth,multiMonthYear",
           }}
           customButtons={{
+            refresh: {
+              text: refreshing ? c.refreshing : c.refresh,
+              click: () => {
+                void handleRefresh();
+              },
+            },
             bookSession: {
               text: c.bookSession,
               click: () => {
